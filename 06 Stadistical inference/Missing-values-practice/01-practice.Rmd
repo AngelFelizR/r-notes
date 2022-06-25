@@ -1,0 +1,197 @@
+---
+title: "Flexible Imputation of Missing Data"
+author: "Angel Feliz"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.align = "center")
+```
+
+</br>
+
+```{r}
+library(data.table)
+library(ggplot2)
+library(scales)
+library(mice)
+library(flextable)
+
+tidy <- broom::tidy
+```
+
+## 1. Introduction
+
+### 1.2. (Loss of information)
+
+**Suppose that a dataset consists of 100 cases and 10 variables. Each variable contains 10% missing values.**
+
+</br>
+
+***What is the largest possible subsample under listwise deletion?***
+
+The best case is that all missing values in all in the same rows. In this case our subsample would have **90 rows**.
+
+</br>
+
+***What is the smallest?***
+
+The worst case is to have a missing value in every row. In this case our subsample would have **0 rows**.
+
+</br>
+
+***If each variable is MCAR, how many cases will remain?***
+
+```{r}
+
+simulations <-20000
+
+complete_cases <-
+data.table(sample = sapply(1:simulations, function(x,rows, no_empty_prop){
+  
+  mean(
+rbinom(rows,1,no_empty_prop) & rbinom(rows,1,no_empty_prop)& 
+  rbinom(rows,1,no_empty_prop)& rbinom(rows,1,no_empty_prop)& 
+  rbinom(rows,1,no_empty_prop)& rbinom(rows,1,no_empty_prop) & 
+  rbinom(rows,1,no_empty_prop)& rbinom(rows,1,no_empty_prop)& 
+  rbinom(rows,1,no_empty_prop)& rbinom(rows,1,no_empty_prop)
+) * 100
+
+}, rows = 100, no_empty_prop =0.9))
+
+```
+
+In this case the most probable outcome is to use **`r median(complete_cases$sample)` rows**.
+
+```{r}
+
+ggplot(complete_cases,aes(sample))+
+  geom_histogram(binwidth = 5)+
+  theme_light()+
+  ggtitle(paste0("Sample distribution of ", comma(simulations,accuracy = 1)," simulations"))
+
+```
+
+
+### 1.3. (Stochastic regression imputation) 
+
+**The correlation of the data in Figure 1.4 is equal to 0.33. This is relatively low compared to the other correlations reported in Section 1.3. This seems to contradict the statement that stochastic regression imputation does not bias the correlation. Could this low correlation be due to random variation?.** 
+
+</br>
+
+***Rerun the code with a different seed value. What is the correlation now?***
+
+```{r}
+data <- airquality[, c("Ozone", "Solar.R")]
+data$Complete <- complete.cases(data)
+
+imp_stochastic <- mice(data, method = "norm.nob", m = 1, maxit = 1,
+                       seed = 2, print = FALSE)
+
+cor_result <- with(complete(imp_stochastic), cor(`Ozone`,`Solar.R`))
+
+```
+
+By using a `seed = 2` we get a correlation of **`r round(cor_result,2)`**. It seems that the correlation change was the result of random variation.
+
+</br>
+
+**Write a loop to apply stochastic regression imputation with the seed increasing from 1 to 1000. Calculate the regression weight and the correlation for each solution, and plot the histogram.**
+
+```{r}
+
+original_cor <- with(data[data$Complete==TRUE,], cor(`Ozone`,`Solar.R`))
+original_weight <- lm(`Ozone`~ `Solar.R`, 
+                      data = data[data$Complete==TRUE,])$coefficients[2]
+
+stochastic_simulation <-
+rbindlist(
+  lapply(1:2000, function(x){
+    
+    imp_stochastic <- mice(data, method = "norm.nob", m = 1, maxit = 1,
+                           seed = x, print = FALSE)
+    
+    data.table(correlation = with(complete(imp_stochastic),
+                                 cor(`Ozone`,`Solar.R`)),
+               regression_weight = lm(`Ozone`~ `Solar.R`, 
+                                      data = complete(imp_stochastic))$coefficients[2],
+               seed = x)
+  })
+ )[, melt(.SD, id.vars = "seed")
+ ][, original_value := fifelse(variable == "correlation", original_cor, original_weight)]
+
+
+ggplot(stochastic_simulation, aes(value))+
+  geom_histogram(bins = 25)+
+  geom_vline(aes(xintercept = original_value), color = "brown2", linetype = 5)+
+  facet_wrap(~variable, scales = "free_x")+
+  theme_light()
+
+```
+
+</br>
+
+**What are the mean, minimum and maximum values of the correlation?**
+
+```{r}
+stochastic_simulation[variable == "correlation", 
+                      value |> summary() |> tidy() |> as.data.table()
+  ][, lapply(.SD, round, digits = 3)] |>
+  flextable() |>
+  theme_vanilla()
+```
+
+</br>
+
+**Do your results indicate that stochastic regression imputation alters the correlation?**
+
+No, they don't
+
+### 1.4. (Stochastic regression imputation (continued)) 
+
+**The largest correlation found in the previous exercise exceeds the value found in Section 1.3.4. This seems odd since the correlation of the imputed values under regression imputation is equal to 1, and hence the imputed data have a maximal contribution to the overall correlation.**
+
+</br>
+
+***Can you explain why this could happen?***
+
+```{r}
+# 1775
+max_cor_seed <- stochastic_simulation[variable == "correlation"
+                                    ][order(-value), seed][1]
+
+imp_stochastic <- mice(data, method = "norm.nob", m = 1, maxit = 1,
+                       seed = max_cor_seed, print = FALSE)
+
+imp_linear <- mice(data, method = "norm.predict", seed = 1,
+                   m = 1, print = FALSE)
+
+imp_linear_stochastic <-
+base::rbind(as.data.table(complete(imp_stochastic))[, type := "imp_stochastic"],
+            as.data.table(complete(imp_linear))[, type := "imp_linear"])
+
+
+ggplot(imp_linear_stochastic, aes(`Solar.R`,Ozone))+
+  geom_point(aes(color = Complete),size = 2)+
+  geom_vline(aes(xintercept = mean(`Solar.R`), group = type), size = 0.8)+
+  geom_hline(aes(yintercept = mean(`Ozone`), group = type), size = 0.8)+
+  geom_smooth(method = "lm")+
+  facet_wrap(~type)+
+  theme_light()+
+  theme(legend.position = "none")
+
+```
+
+It seems that the imputed points have increased the covariance as they are falter from the mean of the Ozone variable. Bellow we can see that the stochastic method has a greater Covariance than the linear method.
+
+</br>
+
+```{r}
+imp_linear_stochastic[, .(Covariance = cov(`Solar.R`,Ozone) |> round(0),
+                        `Variance Product` = (sqrt(var(`Solar.R`))* sqrt(var(Ozone)))|> round(0)),
+                      .(`Importation Method` = type)
+  ][, Correlation := (Covariance/`Variance Product`)|> round(3)] |>
+  flextable() |>
+  theme_vanilla()
+```
