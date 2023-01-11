@@ -204,3 +204,69 @@ substitute_list_to_j_expr <- function(substitute_list) {
   #      env = list(totals = j_expr)]
   
 }
+
+
+## 1.5. Validation functions ----
+
+
+custom_validation <- function(DF,
+                              ...,
+                              external.var.list = vector(mode = "list"),
+                              broken.rules = vector(mode = "character")){
+  
+  rules <- 
+    validator(...) 
+  
+  summary_result <- 
+    confront(DF,
+             x = rules,
+             ref = external.var.list) |>
+    summary(confront_result)
+  
+  
+  if(length(broken.rules) == 0){
+    broken.rules <- 
+      subset(summary_result, items == nrow(DF) & fails > 0)[["name"]]
+  }
+  
+  
+  if(length(broken.rules) > 0){
+    
+    names(broken.rules) <- broken.rules
+    
+    attr(summary_result,"broken_rules") <-
+      lapply(broken.rules, \(rule) violating(DF, rules[rule])) |>
+      add_source(source.name = "Broken Rule") |>
+      rbindlist()
+    
+  }
+  
+  return(summary_result)
+  
+}
+
+
+warning_if_problem <- function(DF, message_text){
+  
+  if(sum(DF$fails) != 0){
+    print(message_text)
+    print(DF[DF$fails != 0, ])
+    print("")
+    warning(message_text)
+  }
+  
+  invisible(DF)
+  
+}
+
+
+stop_if_problem <- function(DF, message_text){
+  
+  if(sum(DF$fails) != 0){
+    print(message_text)
+    print(DF[DF$fails != 0, ])
+    print("")
+    stop(message_text)
+  }
+  
+}
