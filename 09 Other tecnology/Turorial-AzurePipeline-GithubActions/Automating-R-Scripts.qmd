@@ -1,0 +1,196 @@
+---
+title: "Automating R scripts with Github Actions or Azure Pipelines"
+format:
+  html: 
+   embed-resources: TRUE
+---
+
+https://learn.microsoft.com/en-us/azure/devops/pipelines/process/scheduled-triggers?view=azure-devops&tabs=yaml
+https://learn.microsoft.com/en-us/azure/devops/pipelines/repos/azure-repos-git?view=azure-devops&tabs=yaml#ci-triggers
+
+https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions
+https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onschedule
+
+## Steps to follow
+
+### 1. Define where to save the instructions
+
+::: {.panel-tabset group="company"}
+
+## Github
+
+Create the `.github/workflows/` directory to store a workflow file with the extension `.yml`
+
+## Azure
+
+Create the `azure-pipelines.yml` at the root of your repo.
+
+:::
+
+
+### 2. Define when to run the script
+
+::: {.panel-tabset group="company"}
+
+## Github
+
+The execution options are under the `on` with which we could display actions base in many situations a `push` or a `fork` as we can see in the [documentation](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on), but for this project we just need to define a `schedule` to run at specific **UTC time**s using `POSIX cron syntax`, which consists in the next parts:
+
+1. Minute [0,59]
+2. Hour [0,23]
+3. Day of the month [1,31]
+4. Month of the year [1,12]
+5. Day of the week [0,6] where 0=Sunday
+
+```yml
+on: 
+  schedule: 
+  - cron: "0 20 * * 1-5"
+```
+
+Github stores this value in the variable `github.event.schedule` that we can use later to make decisions about the steps that we want to execute.
+
+## Azure
+
+The execution options are under `trigger:`
+
+- **- branch_name:**  Runs whenever your team pushes a change to the main branch of your repo or creates a pull request.
+
+```yml
+ trigger:
+ - main
+```
+
+:::
+
+A very useful tool to define times flowing the `cron syntax` is the [crontab guru](https://crontab.guru/) as you can see below.
+
+![](automating-r-img//crontab-guru.png){width=60% height=60% fig-align="center"}
+
+
+### 2. Name the workflow
+
+::: {.panel-tabset group="company"}
+
+## Github
+
+```yml
+name: hello-r-world
+```
+
+## Azure
+
+We don't need to define this step in *Azure Pipelines*.
+
+:::
+
+
+### 3. Define the platform to build on
+
+::: {.panel-tabset group="company"}
+
+## Github
+
+You can see more options in the [documentation](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners).
+
+```yml
+jobs:
+  any_job_name:
+    runs-on: ubuntu-latest
+```
+
+## Azure
+
+You can see more options in the [documentation](https://learn.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops&tabs=yml#software).
+
+```yml
+pool:
+  vmImage: "ubuntu-latest"
+```
+
+:::
+
+### 4. Setting up the enveroment
+
+Under `jobs/execute-r-script` we need to define the steps to apply. This section depend of other reports like:
+
+- [actions/checkout](https://github.com/actions/checkout): This action checks-out your repository under $GITHUB_WORKSPACE, so your workflow can access it.
+- [r-lib/actions/setup-r](https://github.com/r-lib/actions/tree/v2/setup-r): This action sets up an R environment for use in actions.
+- [r-lib/actions/setup-renv](https://github.com/r-lib/actions/tree/v2/setup-renv): This action installs dependencies for the current R environment based on the renv lockfile in the repository.
+
+
+```yml
+jobs:
+  execute-r-script:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: r-lib/actions/setup-r@v2
+        with: 
+          r-version: 4.2.0
+```
+
+
+### 5. Run the script
+
+To run the script we have the next options:
+
+- **Rscript:** Runs an R script file.
+- **Rscript -e '':** Runs any R function.
+
+```yml
+jobs:
+  execute-r-script:
+    steps:
+      - name: run-script
+        run: Rscript my_awesome_R_script.R # OR run: Rscript -e 'source("my_awesome_R_script.R")' 
+```
+
+### 6. Save the yml file
+
+After completing all the steps we need to save the result in `.github/workflows/my_flow_name.yml`.
+
+```yml
+on: 
+  workflow_dispatch: 
+  schedule: 
+  - cron: "0 20 * * 1-5"
+  
+name: hello-r-world
+
+jobs:
+  execute-r-script:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: r-lib/actions/setup-r@v2
+        with: 
+          r-version: 4.2.0    
+      - name: run-script
+        run: Rscript my_awesome_R_script.R
+```
+
+
+## More examples
+
+- [Introduction to GitHub Actions to R users](https://beamilz.com/posts/series-gha/2022-series-gha-1-what-is/en/)
+- [ffverse / ffopportunity / ep-update-data.yml](https://github.com/ffverse/ffopportunity/blob/main/.github/workflows/ep-update-data.yml)
+
+
+https://github.com/rstudio/r-docker
+
+https://learn.microsoft.com/en-us/azure/devops/pipelines/?view=azure-devops
+
+https://blog.revolutionanalytics.com/2019/09/devops-and-r.html
+https://github.com/revodavid/RMLops/blob/master/azure-pipelines.yml
+
+https://www.programmingwithwolfgang.com/create-git-commits-in-azure-devops-yml-pipeline/
+
+
+https://learn.microsoft.com/en-us/azure/architecture/data-guide/technology-choices/r-developers-guide
+https://github.com/revodavid/RMLops/blob/master/azure-pipelines.yml
+
+https://github.com/yueguoguo/r-on-azure
+
+https://learn.microsoft.com/en-us/azure/architecture/data-guide/technology-choices/r-developers-guide#azure-sql-managed-instance
+https://learn.microsoft.com/en-us/azure/architecture/data-guide/technology-choices/r-developers-guide
