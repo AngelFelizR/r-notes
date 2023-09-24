@@ -1,0 +1,8 @@
+project:
+  title: "10-shiny"
+
+format: gfm
+
+toc: true
+
+output-file: "README.md"
