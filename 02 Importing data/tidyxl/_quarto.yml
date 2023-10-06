@@ -1,0 +1,8 @@
+project:
+  title: "tidyxl"
+
+format: gfm
+
+toc: true
+
+output-file: "README.md"

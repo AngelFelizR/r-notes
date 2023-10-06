@@ -1,0 +1,183 @@
+---
+title: "Importing ANY Excel"
+---
+
+## The problem
+
+Import spreadsheet files into `R` must of the time is really easy using packages like `readxl`, `openxlsx` or `openxlsx2` if that data follows a tabular form, but what happens when the data doesn't follow that rule?
+
+You could need to edit the file to make to make explicit some formats or reshape the data. That's a possibility if you have few columns and rows, but for files with hundreds of columns and rows that might not be possible.
+
+## Using a different approach
+
+Rather than training to import a table from the spreadsheets `tidyxl` creates a `tibble` where every cell is represented by a row and the columns represent different properties linked to each cell and once we have the data in `R` we can use `unpivotr`to tidy the result and start out analysis.
+
+So let's load the libraries to use
+
+```{r}
+library(tidyxl)
+library(data.table)
+library(unpivotr)
+```
+
+## Importing data
+
+### Titanic spreadsheet
+
+This data is a simple example of summary tables we can find in papers, very simple to understand by humands but very hard to import to `R`.
+
+![extdata/titanic.xlsx](img/01-titanic-file.png)
+
+```{r}
+TitanicPath <- system.file(
+  "extdata/titanic.xlsx",
+  package = "tidyxl"
+)
+
+TitanicCells <- xlsx_cells(TitanicPath)
+TitanicFormats <- xlsx_formats(TitanicPath)
+
+setDT(TitanicCells)
+
+pillar::glimpse(TitanicCells)
+```
+
+### Example spreadsheet
+
+![extdata/examples.xlsx](img/02-many-cell-formats.png)
+
+```{r}
+ExamplePath <- system.file(
+  "extdata/examples.xlsx", 
+  package = "tidyxl"
+)
+
+ExampleCells <- xlsx_cells(ExamplePath, sheets = "Sheet1")
+ExampleFormats <- xlsx_formats(ExamplePath)
+
+setDT(ExampleCells)
+setkey(ExampleCells, address)
+
+pillar::glimpse(ExampleCells)
+```
+
+
+## Exploring results
+
+To understand to use this approch we need to undertand the results of `xlsx_cells` column by column and it relates with the `xlsx_formats` results.
+
+### Describing cells' possition
+
+- **sheet**: The worksheet that the cell is from.
+
+```{r}
+ExampleCells[, .N, by = "sheet"]
+```
+
+- **address**: The cell address in A1 notation.
+- **row**: The row number of a cell address (integer).
+- **col**: The column number of a cell address (integer).
+
+```{r}
+ExampleCells[1:6, .(sheet,address, row, col)]
+```
+
+### Describing cells' content
+
+- **data_type**: The type of a cell, referring to the following columns: error, logical, numeric, date, character, blank.
+- **is_blank**: It's `TRUE` if the cell has a value.
+- **content**: Raw cell value before type conversion. I may be:
+  - A numeric value
+  - A data/datetime in one of the Excel's date/datetime systems.
+  - An index into an internal table of strings.
+
+```{r}
+ExampleCells[, .SD[1:2],
+             by = "data_type",
+             .SDcols = c("is_blank", "content")]
+```
+
+- **error**: The error value of a cell.
+- **logical**: The boolean value of a cell.
+- **numeric**: The numeric value of a cell.
+- **date**: The date value of a cell.
+- **character**: The string value of a cell.
+- **comment**: The text of a comment attached to a cell.
+
+```{r}
+ValueCols <- c(
+  "error",
+  "character",
+  "logical",
+  "numeric",
+  "date",
+  "comment"
+)
+
+ExampleCells[is_blank == FALSE, 
+             .SD[order(is.na(comment))][1:2],
+             by = "data_type",
+             .SDcols = ValueCols]
+```
+
+### Describing cells' formulas
+
+- **formula**: Shows as a text the formula used to return any value after removing brakes `{}` for array functions.
+- **formula_group**: When 2 cells has the same function or just changing by cell reference then Excel only the writes the formula once in the document and `tidyxl`infers the group for those cases.
+- **formula_ref**: The address of a range of cells group to which an **array** formula or **shared** formula applies.
+
+```{r}
+ExampleCells[.(address = c(paste0("A",19:21),
+                           paste0("B",19:21))),
+             .(address,
+               formula,
+               formula_group,
+               formula_ref)]
+```
+
+
+- **is_array**: Whether or not the formula is an array formula. In `A22`the result is presented in the same cell, but for `A23` the result is displayed in cells `A23:A24`.
+
+```{r}
+ExampleCells[address %chin% paste0("A",22:24) &
+               sheet == "Sheet1",
+             .(address,
+               formula,
+               is_array,
+               formula_ref)]
+```
+
+### Describing cells' format
+
+- **character_formatted**: As a single cell can contain *substrings with different formatting*, each `character` cell has a `tibble` with one row per row. 
+
+  - If a cell has many words but one format for all of them, this column will return a `tibble` with single row.
+
+```{r}
+ExampleStringCellFormat <-
+  ExampleCells[data_type == "character" &
+                 character %like% " ", 
+               .(address,
+                 character,
+                 character_formatted)
+  ][1:6]
+
+ExampleStringCellFormat
+```
+
+  - And unnesting the column you will see just `NAs` on each column.
+
+```{r}
+ExampleStringCellFormat[, character_formatted[[1L]],
+                        by = "address"]
+```
+
+  - But exploring the cell `A4` we can see how the `tibble` breaks the cell in 16 rows representing different substring's formats.
+
+![](img/03-cell-A39.png)
+  
+```{r}
+ExampleCells[address == "A39", 
+             character_formatted[[1L]]] |>
+  as.data.table()
+```
