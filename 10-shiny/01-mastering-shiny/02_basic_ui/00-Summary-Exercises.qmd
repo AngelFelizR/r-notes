@@ -5,7 +5,7 @@ title: "2. Basic UI"
 ## Mind Map Summary
 
 ![](img/UI-Elements.svg)
-  
+
 ## 2.2.8. Exercises
 
 1. When space is at a premium, it’s useful to label text boxes using a placeholder that appears inside the text entry area. How do you call `textInput()` to generate the UI below?
@@ -84,15 +84,6 @@ server <- function(input, output, session) {
   output$table <- renderDataTable(mtcars, options = list(pageLength = 5))
 }
 ```
-
-**Solution**
-
-```{r}
-#| echo: true
-#| eval: false
-#| file: 02-03-03-exercise.R
-```
-
 **Solution**
 
 ```{r}
