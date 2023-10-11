@@ -1,0 +1,158 @@
+<map version="1.0.1">
+<!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
+<node COLOR="#000000" CREATED="1696927634870" ID="ID_1005918158" MODIFIED="1697000669784" TEXT="UI Elements">
+<edge COLOR="#6666ff"/>
+<font BOLD="true" NAME="SansSerif" SIZE="28"/>
+<hook NAME="accessories/plugins/HierarchicalIcons.properties"/>
+<node COLOR="#0033ff" CREATED="1696927742371" HGAP="28" ID="ID_1895508459" MODIFIED="1697001292864" POSITION="right" TEXT="Input" VSHIFT="83">
+<edge STYLE="sharp_bezier" WIDTH="8"/>
+<font BOLD="true" NAME="SansSerif" SIZE="24"/>
+<node COLOR="#000000" CREATED="1696927853447" HGAP="50" ID="ID_631001392" MODIFIED="1697000848915" TEXT="Free Text" VSHIFT="-4">
+<edge STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="24"/>
+<node COLOR="#111111" CREATED="1696927912707" ID="ID_95690588" MODIFIED="1697001162780" TEXT="textInput">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+<node COLOR="#111111" CREATED="1696927989834" HGAP="22" ID="ID_1712310265" MODIFIED="1697001418980" TEXT="passwordInput" VSHIFT="17">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+<node COLOR="#111111" CREATED="1696927997891" HGAP="22" ID="ID_1818794533" MODIFIED="1697001414820" TEXT="textAreaInput" VSHIFT="9">
+<font NAME="SansSerif" SIZE="20"/>
+<node COLOR="#111111" CREATED="1696938702103" ID="ID_662871021" MODIFIED="1697001162780" TEXT="rows = 3">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+</node>
+</node>
+<node COLOR="#000000" CREATED="1696928042182" HGAP="77" ID="ID_126649344" MODIFIED="1697001239177" TEXT="Numeric" VSHIFT="36">
+<edge STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="24"/>
+<node COLOR="#111111" CREATED="1696928068952" ID="ID_702169791" MODIFIED="1697001162780" TEXT="numericInput">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+<node COLOR="#111111" CREATED="1696928083315" ID="ID_745294982" MODIFIED="1697001162780" TEXT="sliderInput">
+<font NAME="SansSerif" SIZE="20"/>
+<node COLOR="#111111" CREATED="1696938723940" ID="ID_653696358" MODIFIED="1697001162780" TEXT="value = c(10, 20)">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+<node COLOR="#111111" CREATED="1696938730291" ID="ID_410478968" MODIFIED="1697001409668" TEXT="value = 50" VSHIFT="7">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+</node>
+</node>
+<node COLOR="#000000" CREATED="1696939093494" HGAP="127" ID="ID_1848494744" MODIFIED="1697001275658" TEXT="Dates" VSHIFT="25">
+<edge STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="24"/>
+<node COLOR="#111111" CREATED="1696939133307" ID="ID_867279007" MODIFIED="1697001162791" TEXT="dateInput">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+<node COLOR="#111111" CREATED="1696939152989" HGAP="22" ID="ID_1044662233" MODIFIED="1697001406717" TEXT="dateRangeInput" VSHIFT="27">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+</node>
+<node COLOR="#000000" CREATED="1696939257061" HGAP="139" ID="ID_376805096" MODIFIED="1697001299979" TEXT="Limited choices" VSHIFT="-29">
+<edge STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="24"/>
+<node COLOR="#111111" CREATED="1696991147589" HGAP="30" ID="ID_310819413" MODIFIED="1697001391580" TEXT="checkboxGroupInput" VSHIFT="-23">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+<node COLOR="#111111" CREATED="1696939291040" ID="ID_1473404693" MODIFIED="1697001162794" TEXT="selectInput">
+<font NAME="SansSerif" SIZE="20"/>
+<node COLOR="#111111" CREATED="1696991032063" ID="ID_1820684548" MODIFIED="1697001162794" TEXT="multiple = TRUE">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+</node>
+<node COLOR="#111111" CREATED="1696939352741" HGAP="23" ID="ID_279247489" MODIFIED="1697001395502" TEXT="radioButtons" VSHIFT="25">
+<font NAME="SansSerif" SIZE="20"/>
+<node COLOR="#111111" CREATED="1696939583294" ID="ID_1062263068" MODIFIED="1697001162794" TEXT="choices = c(&quot;A&quot;,&quot;B&quot;)">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+<node COLOR="#111111" CREATED="1696939616160" ID="ID_545124709" MODIFIED="1697001162794" TEXT="choiceNames = list(icon(&quot;angry&quot;), icon(&quot;smile&quot;))&#xa;choiceValues = list(&quot;angry&quot;, &quot;happy&quot;)">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+</node>
+<node COLOR="#111111" CREATED="1696991093227" HGAP="24" ID="ID_1534491782" MODIFIED="1697001399315" TEXT="checkboxInput" VSHIFT="29">
+<font NAME="SansSerif" SIZE="20"/>
+<node COLOR="#111111" CREATED="1696991210535" ID="ID_123441301" MODIFIED="1697001162802" TEXT="value = TRUE">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+</node>
+</node>
+<node COLOR="#000000" CREATED="1696991243912" HGAP="171" ID="ID_1631693262" MODIFIED="1697001244340" TEXT="File uploads" VSHIFT="-44">
+<edge STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="24"/>
+<node COLOR="#111111" CREATED="1696991395362" ID="ID_1656575814" MODIFIED="1697001162780" TEXT="fileInput">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+</node>
+<node COLOR="#000000" CREATED="1696991432028" HGAP="160" ID="ID_1016654252" MODIFIED="1697001269519" TEXT="Actions buttons" VSHIFT="-11">
+<edge STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="24"/>
+<node COLOR="#111111" CREATED="1696991450697" ID="ID_1590055885" MODIFIED="1697001162780" TEXT="actionButton">
+<font NAME="SansSerif" SIZE="20"/>
+<node COLOR="#111111" CREATED="1696991453962" ID="ID_1688103949" MODIFIED="1697001162780" TEXT="icon = icon(&quot;cocktail&quot;)">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+<node COLOR="#111111" CREATED="1696991499363" ID="ID_1454723255" MODIFIED="1697001427396" TEXT="class from Bootstrap 3.3.6" VSHIFT="20">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+</node>
+</node>
+</node>
+<node COLOR="#0033ff" CREATED="1696996049784" HGAP="38" ID="ID_1407899451" MODIFIED="1697000809351" POSITION="left" TEXT="Outputs" VSHIFT="75">
+<edge COLOR="#6666ff" STYLE="sharp_bezier" WIDTH="8"/>
+<font BOLD="true" NAME="SansSerif" SIZE="24"/>
+<node COLOR="#000000" CREATED="1696996058652" HGAP="127" ID="ID_1946507387" MODIFIED="1697001381773" STYLE="fork" TEXT="Text" VSHIFT="-49">
+<edge COLOR="#6666ff" STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="24"/>
+<node COLOR="#111111" CREATED="1696996140176" ID="ID_1809932040" MODIFIED="1697001162780" TEXT="textOutput">
+<font NAME="SansSerif" SIZE="20"/>
+<node COLOR="#111111" CREATED="1696996177264" ID="ID_501431890" MODIFIED="1697001162780" TEXT="renderText">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+</node>
+<node COLOR="#111111" CREATED="1696996207434" HGAP="16" ID="ID_168497456" MODIFIED="1697001433311" STYLE="fork" TEXT="verbatimTextOutput" VSHIFT="22">
+<font NAME="SansSerif" SIZE="20"/>
+<node CREATED="1697000544988" ID="ID_488042759" MODIFIED="1697001162780" TEXT="renderPrint">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+</node>
+</node>
+<node COLOR="#000000" CREATED="1696996271045" HGAP="121" ID="ID_768388571" MODIFIED="1697001376163" TEXT="Tables" VSHIFT="-39">
+<edge STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="24"/>
+<node COLOR="#111111" CREATED="1696996315903" ID="ID_119030977" MODIFIED="1697001162780" TEXT="tableOutput">
+<font NAME="SansSerif" SIZE="20"/>
+<node COLOR="#000000" CREATED="1696996331491" ID="ID_584078933" MODIFIED="1697001162780" TEXT="renderTable">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+</node>
+<node COLOR="#111111" CREATED="1696996336276" HGAP="21" ID="ID_1060769591" MODIFIED="1697001436399" TEXT="dataTableOutput" VSHIFT="27">
+<font NAME="SansSerif" SIZE="20"/>
+<node COLOR="#111111" CREATED="1696996498156" ID="ID_1151433757" MODIFIED="1697001162780" TEXT="renderDataTable">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+</node>
+</node>
+<node COLOR="#000000" CREATED="1696996589435" HGAP="113" ID="ID_1935266989" MODIFIED="1697001372237" TEXT="Plots" VSHIFT="10">
+<edge STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="24"/>
+<node COLOR="#111111" CREATED="1696996599368" ID="ID_1891776990" MODIFIED="1697001162780" TEXT="plotOutput">
+<font NAME="SansSerif" SIZE="20"/>
+<node COLOR="#111111" CREATED="1696996618254" ID="ID_1866600598" MODIFIED="1697001162780" TEXT="renderPlot">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+</node>
+</node>
+<node COLOR="#000000" CREATED="1696996757149" HGAP="102" ID="ID_368851702" MODIFIED="1697001364674" TEXT="Downloads" VSHIFT="59">
+<edge STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="24"/>
+<node COLOR="#111111" CREATED="1696997513846" ID="ID_1243014280" MODIFIED="1697001162780" TEXT="downloadButton">
+<font NAME="SansSerif" SIZE="20"/>
+<node COLOR="#111111" CREATED="1696997542698" ID="ID_468185610" MODIFIED="1697001162780" TEXT="downloadLink">
+<font NAME="SansSerif" SIZE="20"/>
+</node>
+</node>
+</node>
+</node>
+</node>
+</map>
