@@ -1,4 +1,6 @@
 # How to Import Any Spreadsheet File into `R`: Using tidyxl and unpivotr
+Ángel Féliz
+2023-10-14
 
 ## Introduction
 
@@ -27,9 +29,15 @@ In this blog post, **I will show you how to use these two packages to
 import any spreadsheet file into `R` with ease and confidence** taking
 your data analysis skills to the next level.
 
-## Loading environment’s objects
+## Loading libraries
 
-1.  Libraries to use.
+1.  Printing R running version
+
+<!-- -->
+
+    [1] "R version 4.2.3 (2023-03-15 ucrt)"
+
+2.  Importing libraries used
 
 ``` r
 # To import data
@@ -42,45 +50,36 @@ library(data.table)
 library(unpivotr)
 ```
 
-2.  Datasets to use.
-
-- Different cells spreadsheet
-
-![extdata/examples.xlsx](img/02-many-cell-formats.png)
-
-``` r
-DiffCellsPath <- system.file(
-  "extdata/examples.xlsx", 
-  package = "tidyxl"
-)
-
-DiffCells <- xlsx_cells(DiffCellsPath, sheets = "Sheet1")
-DiffCellsFormats <- xlsx_formats(DiffCellsPath)
-
-setDT(DiffCells)
-setkey(DiffCells, address)
-```
-
-- Sales Example
-
-![](img/04-outline-example.png)
-
-``` r
-SalesCells <- xlsx_cells("data/annual_sales.xlsx")
-
-setDT(SalesCells)
-```
+          Package Version Repository
+    1:   unpivotr   0.6.3       CRAN
+    2: data.table  1.14.8       CRAN
+    3:     tidyxl   1.0.8       <NA>
 
 ## Exploring results from tidyxl
 
 To understand how to use this approach, we need to understand the
 results of `xlsx_cells` column by column and how they relate to the
-`xlsx_formats` results.
+`xlsx_formats` results using different spreadsheet to ilustrate each
+case.
 
-As some columns have similar objectives, we are going to explain the
-result category.
+### `tidyxl` example spreadsheet
 
-### Cells’ position
+``` r
+ExampleSheetPath <- system.file(
+  "extdata/examples.xlsx", 
+  package = "tidyxl"
+)
+
+ExampleSheet <- xlsx_cells(ExampleSheetPath, sheets = "Sheet1")
+ExampleSheetFormats <- xlsx_formats(ExampleSheetPath)
+
+setDT(ExampleSheet)
+setkey(ExampleSheet, address)
+```
+
+![extdata/examples.xlsx](img/02-many-cell-formats.png)
+
+#### Cells’ position
 
 - **sheet**: The worksheet that the cell is from.
 - **address**: The cell address in A1 notation.
@@ -88,7 +87,7 @@ result category.
 - **col**: The column number of a cell address (integer).
 
 ``` r
-DiffCells[1:6, .(sheet,address, row, col)]
+ExampleSheet[1:6, .(sheet,address, row, col)]
 ```
 
         sheet address row col
@@ -99,7 +98,7 @@ DiffCells[1:6, .(sheet,address, row, col)]
     5: Sheet1    A102 102   1
     6: Sheet1    A103 103   1
 
-### Cells’ content type
+#### Cells’ content type
 
 - **data_type**: The type of a cell, referring to the following columns:
   error, logical, numeric, date, character, blank.
@@ -110,7 +109,7 @@ DiffCells[1:6, .(sheet,address, row, col)]
   - An index into an internal table of strings.
 
 ``` r
-DiffCells[, .SD[1:2],
+ExampleSheet[, .SD[1:2],
              by = "data_type",
              .SDcols = c("is_blank", "content")]
 ```
@@ -129,7 +128,7 @@ DiffCells[, .SD[1:2],
     11:   logical    FALSE                   1
     12:   logical    FALSE                   1
 
-### Cells’ content
+#### Cells’ content
 
 - **error**: The error value of a cell.
 - **logical**: The boolean value of a cell.
@@ -148,7 +147,7 @@ ValueCols <- c(
   "comment"
 )
 
-DiffCells[is_blank == FALSE, 
+ExampleSheet[is_blank == FALSE, 
              .SD[order(is.na(comment))][1:2],
              by = "data_type",
              .SDcols = ValueCols]
@@ -177,7 +176,7 @@ DiffCells[is_blank == FALSE,
      9:    TRUE      NA                <NA>                      <NA>
     10:    TRUE      NA                <NA>                      <NA>
 
-### Cells’ formulas
+#### Cells’ formulas
 
 ![](img/05-example-formulas.png)
 
@@ -193,7 +192,7 @@ DiffCells[is_blank == FALSE,
   result is displayed in cells `A23:A24`.
 
 ``` r
-DiffCells[.(address = c(paste0("A",19:21),
+ExampleSheet[.(address = c(paste0("A",19:21),
                         paste0("B",19:21),
                         paste0("A",22:24))),
              .(address,
@@ -214,7 +213,7 @@ DiffCells[.(address = c(paste0("A",19:21),
     8:     A23      A19:A20*B19:B20            NA     A23:A24     TRUE
     9:     A24                 <NA>            NA        <NA>    FALSE
 
-### Describing substrings’ formatting
+#### Describing substrings’ formatting
 
 - **character_formatted**: As a single cell can contain *substrings with
   different formatting*, each `character` cell has a `tibble` with one
@@ -227,7 +226,7 @@ DiffCells[.(address = c(paste0("A",19:21),
 
 ``` r
 SubstringsWithDefault <-
-  DiffCells[.(address = paste0("A", c(108,109,112,133,134))), 
+  ExampleSheet[.(address = paste0("A", c(108,109,112,133,134))), 
             .(address,
               character,
               character_formatted)]
@@ -285,7 +284,7 @@ SubstringsWithDefault[, character_formatted[[1L]],
     <span style="color:#ff0000"> red </span>.
 
 ``` r
-DiffCells[address == "A132", 
+ExampleSheet[address == "A132", 
           as.data.table(character_formatted[[1L]])
 # To avoid printing columns with a single value
 ][, .SD, .SDcols = \(x) uniqueN(x) > 1L]
@@ -296,33 +295,69 @@ DiffCells[address == "A132",
     2:                    format  TRUE  FALSE  FF0000FF
     3:  with cell-level defaults FALSE   TRUE  FFFF0000
 
-### Describing cells’ dimensions
-
-- We all can see the dimensions of each cell.
+### Sales example spreadsheet
 
 ``` r
-DiffCells[width == 8.38,
-          .(address, 
-               height, 
-               width,
-               row_outline_level,
-               col_outline_level)]
+SalesCells <- xlsx_cells("data/annual_sales.xlsx")
+
+setDT(SalesCells)
 ```
 
-       address height width row_outline_level col_outline_level
-    1:    D173  14.25  8.38                 1                 1
-    2:    E173  14.25  8.38                 1                 1
-    3:    F173  14.25  8.38                 1                 1
-    4:    G173  14.25  8.38                 1                 1
+![](img/04-outline-example.png)
+
+#### Describing cells’ outline level
+
+- **row_outline_level**: The outline level of a cells’s row. In this
+  example, we can see how the header and total rows are at first level,
+  the subtotals are at second and the individual values are third level.
+
+- **col_outline_level**: The outline level of a cells’s column. In the
+  example, we don’t have group columns and all cells are at first level.
 
 ``` r
-DiffCells[address == "A132",
-             .(address, 
-               height, 
-               width,
-               row_outline_level,
-               col_outline_level)]
+SalesCells[address %chin% paste0("A",1:18), 
+           .(address,
+             character,
+             numeric,
+             row_outline_level,
+             col_outline_level)
+  ][order(row_outline_level)]
 ```
 
-       address height  width row_outline_level col_outline_level
-    1:    A132     15 19.375                 1                 1
+        address   character numeric row_outline_level col_outline_level
+     1:      A1     Quarter      NA                 1                 1
+     2:     A18 Grand Total      NA                 1                 1
+     3:      A5     1 Total      NA                 2                 1
+     4:      A9     2 Total      NA                 2                 1
+     5:     A13     3 Total      NA                 2                 1
+     6:     A17     4 Total      NA                 2                 1
+     7:      A2        <NA>       1                 3                 1
+     8:      A3        <NA>       1                 3                 1
+     9:      A4        <NA>       1                 3                 1
+    10:      A6        <NA>       2                 3                 1
+    11:      A7        <NA>       2                 3                 1
+    12:      A8        <NA>       2                 3                 1
+    13:     A10        <NA>       3                 3                 1
+    14:     A11        <NA>       3                 3                 1
+    15:     A12        <NA>       3                 3                 1
+    16:     A14        <NA>       4                 3                 1
+    17:     A15        <NA>       4                 3                 1
+    18:     A16        <NA>       4                 3                 1
+
+#### Describing cells’ dimensions
+
+- **width**: The width of a cell’s column, in Excel’s units.
+- **height**: The height of a cell’s row, in Excel’s units.
+
+``` r
+SalesCells[address %chin% paste0(LETTERS[1:3],"1"), 
+           .(address,
+             character,
+             width,
+             height)]
+```
+
+       address character    width height
+    1:      A1   Quarter  8.38000   15.6
+    2:      B1     Month 20.10938   15.6
+    3:      C1     Sales 12.55469   15.6
