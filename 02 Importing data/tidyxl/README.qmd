@@ -1,0 +1,201 @@
+---
+title: "How to Import Any Spreadsheet File into `R`: Using tidyxl and unpivotr"
+---
+
+## Introduction
+
+**Do you struggle with importing complex or messy spreadsheets into `R`?** You are not alone. Many data analysts and researchers face this challenge every day. 
+
+Spreadsheets are widely used for storing, manipulating, and presenting data in various domains and applications. However, ***not all spreadsheets are created equal***. Some of them may contain multiple tables, merged cells, headers, footers, comments, formulas, formatting, or other features that make them difficult to import into `R` using conventional packages like `readxl`, `openxlsx` or `openxlsx2`.
+
+But don't worry, there is a better way using `tidyxl` and `unpivotr`. These two packages work together to handle any spreadsheet file, no matter how it looks, in a fast and reproducible way. 
+
+- `tidyxl` imports every cell as a row, preserving all the information and attributes of the original file. 
+
+- `unpivotr` reshapes the data into a tidy format that is suitable for analysis and visualization. 
+
+In this blog post, **I will show you how to use these two packages to import any spreadsheet file into `R` with ease and confidence** taking your data analysis skills to the next level.
+
+
+## Loading environment’s objects
+
+1. Libraries to use.
+
+```{r}
+# To import data
+library(tidyxl)
+
+# To explore results of tidyxl
+library(data.table)
+
+# To transform the results
+library(unpivotr)
+```
+
+2. Datasets to use.
+
+  - Different cells spreadsheet
+
+![extdata/examples.xlsx](img/02-many-cell-formats.png)
+
+```{r}
+#| output: false
+
+DiffCellsPath <- system.file(
+  "extdata/examples.xlsx", 
+  package = "tidyxl"
+)
+
+DiffCells <- xlsx_cells(DiffCellsPath, sheets = "Sheet1")
+DiffCellsFormats <- xlsx_formats(DiffCellsPath)
+
+setDT(DiffCells)
+setkey(DiffCells, address)
+```
+
+  - Sales Example
+
+![](img/04-outline-example.png)
+
+```{r}
+#| output: false
+
+SalesCells <- xlsx_cells("data/annual_sales.xlsx")
+
+setDT(SalesCells)
+```
+
+
+## Exploring results from tidyxl
+
+To understand how to use this approach, we need to understand the results of `xlsx_cells` column by column and how they relate to the `xlsx_formats` results.
+
+As some columns have similar objectives, we are going to explain the result category.
+
+### Cells' position
+
+- **sheet**: The worksheet that the cell is from.
+- **address**: The cell address in A1 notation.
+- **row**: The row number of a cell address (integer).
+- **col**: The column number of a cell address (integer).
+
+```{r}
+DiffCells[1:6, .(sheet,address, row, col)]
+```
+
+### Cells' content type
+
+- **data_type**: The type of a cell, referring to the following columns: error, logical, numeric, date, character, blank.
+- **is_blank**: It's `TRUE` if the cell has a value.
+- **content**: Raw cell value before type conversion. It may be:
+  - A numeric value
+  - A data/datetime in one of the Excel's date/datetime systems.
+  - An index into an internal table of strings.
+
+```{r}
+DiffCells[, .SD[1:2],
+             by = "data_type",
+             .SDcols = c("is_blank", "content")]
+```
+
+### Cells' content
+
+- **error**: The error value of a cell.
+- **logical**: The boolean value of a cell.
+- **numeric**: The numeric value of a cell.
+- **date**: The date value of a cell.
+- **character**: The string value of a cell.
+- **comment**: The text of a comment attached to a cell.
+
+```{r}
+ValueCols <- c(
+  "error",
+  "character",
+  "logical",
+  "numeric",
+  "date",
+  "comment"
+)
+
+DiffCells[is_blank == FALSE, 
+             .SD[order(is.na(comment))][1:2],
+             by = "data_type",
+             .SDcols = ValueCols]
+```
+
+### Cells' formulas
+
+![](img/05-example-formulas.png)
+
+- **formula**: Shows as a text the formula used to return any value after removing braces `{}` for array functions.
+- **formula_group**: When 2 cells has the same function or just changing by cell reference then Excel only the write the formula once in the document and `tidyxl`infers the group for those cases.
+- **formula_ref**: The address of a range of cells group to which an **array** formula or **shared** formula applies.
+- **is_array**: Whether or not the formula is an array formula. In `A22`the result is presented in the same cell, but for `A23` the result is displayed in cells `A23:A24`.
+
+```{r}
+DiffCells[.(address = c(paste0("A",19:21),
+                        paste0("B",19:21),
+                        paste0("A",22:24))),
+             .(address,
+               formula,
+               formula_group,
+               formula_ref,
+               is_array)]
+```
+
+### Describing substrings' formatting
+
+- **character_formatted**: As a single cell can contain *substrings with different formatting*, each `character` cell has a `tibble` with one row per substring. 
+
+  - If a cell has many words but one format for all of them, this column will return a `tibble` with a single row, as we can see for cells `A108`, `A109`, `A112`, `A133` and `A134`, and if we unnest the columns we can only see `NA`.
+
+```{r}
+SubstringsWithDefault <-
+  DiffCells[.(address = paste0("A", c(108,109,112,133,134))), 
+            .(address,
+              character,
+              character_formatted)]
+
+SubstringsWithDefault
+
+SubstringsWithDefault[, character_formatted[[1L]],
+                      by = "address"]
+```
+
+  - But exploring the cell `A132` we can see how the `tibble` breaks the cell in **3 rows** representing different substring's formats.
+  
+![](img/06-example-in-cell-text-format.png)
+  
+  -
+    - **in-cell** is *italic* and <span style = 'color:#0000ff'> blue </span>.
+    - **format** is **bold** and <span style = 'color:#0000ff'> blue </span>.
+    - **with cell-level defaults** is *italic* and <span style = 'color:#ff0000'> red </span>.
+
+```{r}
+DiffCells[address == "A132", 
+          as.data.table(character_formatted[[1L]])
+# To avoid printing columns with a single value
+][, .SD, .SDcols = \(x) uniqueN(x) > 1L]
+```
+
+### Describing cells' dimensions
+
+- We all can see the dimensions of each cell.
+
+```{r}
+DiffCells[width == 8.38,
+          .(address, 
+               height, 
+               width,
+               row_outline_level,
+               col_outline_level)]
+
+DiffCells[address == "A132",
+             .(address, 
+               height, 
+               width,
+               row_outline_level,
+               col_outline_level)]
+```
+
+
