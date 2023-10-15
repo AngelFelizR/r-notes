@@ -21,15 +21,11 @@ In this blog post, **I will show you how to use these two packages to import any
 
 ## Loading libraries
 
-1. Printing R running version
-
 ```{r}
 #| echo: false
 
 R.version$version.string
 ```
-
-2. Importing libraries used
 
 ```{r}
 #| message: false
@@ -37,6 +33,9 @@ R.version$version.string
 
 # To import data
 library(tidyxl)
+
+# To print dir
+library(fs)
 
 # To explore results of tidyxl
 library(data.table)
@@ -183,6 +182,41 @@ ExampleSheet[address == "A132",
 # To avoid printing columns with a single value
 ][, .SD, .SDcols = \(x) uniqueN(x) > 1L]
 ```
+
+#### Describing format ids
+
+The next columns are related to the result of `xlsx_formats` which is a nested list of formatting definitions from spreadsheets. With the next code, we can print a tree with second level groups present in the list. For example, `cell-format$local$alignment` doesn't have any other list bellow 
+
+```{r}
+
+create_folter_tree <- function(x, 
+                               start_path,
+                               show_properties = FALSE){
+  
+  if(!dir.exists(start_path)) dir.create(start_path)
+  for(folder_i in names(x)){
+    new_path <- file.path(start_path, folder_i)
+    if(show_properties) dir.create(new_path)
+    if(is.list(x[[folder_i]])){
+      create_folter_tree(x[[folder_i]], new_path, show_properties)
+    }
+  }
+  
+}
+
+start_path <- "cell-format"
+create_folter_tree(ExampleSheetFormats, start_path)
+dir_tree(start_path, recurse = 2)
+unlink(start_path, recursive = TRUE)
+```
+
+- **style_format**: An index into a table of style formats `x$formats$style`.
+
+![](img/07-excel-styles.png)
+
+- **local_format_id**: An index into a table of style formats `x$formats$local`.
+
+
 
 ### Sales example spreadsheet
 

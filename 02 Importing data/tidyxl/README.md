@@ -1,6 +1,6 @@
 # How to Import Any Spreadsheet File into `R`: Using tidyxl and unpivotr
 Ángel Féliz
-2023-10-14
+2023-10-15
 
 ## Introduction
 
@@ -31,17 +31,14 @@ your data analysis skills to the next level.
 
 ## Loading libraries
 
-1.  Printing R running version
-
-<!-- -->
-
     [1] "R version 4.2.3 (2023-03-15 ucrt)"
-
-2.  Importing libraries used
 
 ``` r
 # To import data
 library(tidyxl)
+
+# To print dir
+library(fs)
 
 # To explore results of tidyxl
 library(data.table)
@@ -53,7 +50,8 @@ library(unpivotr)
           Package Version Repository
     1:   unpivotr   0.6.3       CRAN
     2: data.table  1.14.8       CRAN
-    3:     tidyxl   1.0.8       <NA>
+    3:         fs   1.6.3       CRAN
+    4:     tidyxl   1.0.8       <NA>
 
 ## Exploring results from tidyxl
 
@@ -294,6 +292,85 @@ ExampleSheet[address == "A132",
     1:                  in-cell  FALSE   TRUE  FF0000FF
     2:                    format  TRUE  FALSE  FF0000FF
     3:  with cell-level defaults FALSE   TRUE  FFFF0000
+
+#### Describing format ids
+
+The next columns are related to the result of `xlsx_formats` which is a
+nested list of formatting definitions from spreadsheets. With the next
+code, we can print a tree with second level groups present in the list.
+For example, `cell-format$local$alignment` doesn’t have any other list
+bellow
+
+``` r
+create_folter_tree <- function(x, 
+                               start_path,
+                               show_properties = FALSE){
+  
+  if(!dir.exists(start_path)) dir.create(start_path)
+  for(folder_i in names(x)){
+    new_path <- file.path(start_path, folder_i)
+    if(show_properties) dir.create(new_path)
+    if(is.list(x[[folder_i]])){
+      create_folter_tree(x[[folder_i]], new_path, show_properties)
+    }
+  }
+  
+}
+
+start_path <- "cell-format"
+create_folter_tree(ExampleSheetFormats, start_path)
+dir_tree(start_path, recurse = 2)
+```
+
+    cell-format
+    ├── local
+    │   ├── alignment
+    │   ├── border
+    │   │   ├── bottom
+    │   │   ├── diagonal
+    │   │   ├── end
+    │   │   ├── horizontal
+    │   │   ├── left
+    │   │   ├── right
+    │   │   ├── start
+    │   │   ├── top
+    │   │   └── vertical
+    │   ├── fill
+    │   │   ├── gradientFill
+    │   │   └── patternFill
+    │   ├── font
+    │   │   └── color
+    │   └── protection
+    └── style
+        ├── alignment
+        ├── border
+        │   ├── bottom
+        │   ├── diagonal
+        │   ├── end
+        │   ├── horizontal
+        │   ├── left
+        │   ├── right
+        │   ├── start
+        │   ├── top
+        │   └── vertical
+        ├── fill
+        │   ├── gradientFill
+        │   └── patternFill
+        ├── font
+        │   └── color
+        └── protection
+
+``` r
+unlink(start_path, recursive = TRUE)
+```
+
+- **style_format**: An index into a table of style formats
+  `x$formats$style`.
+
+![](img/07-excel-styles.png)
+
+- **local_format_id**: An index into a table of style formats
+  `x$formats$local`.
 
 ### Sales example spreadsheet
 
