@@ -297,9 +297,8 @@ ExampleSheet[address == "A132",
 
 The next columns are related to the result of `xlsx_formats` which is a
 nested list of formatting definitions from spreadsheets. With the next
-code, we can print a tree with second level groups present in the list.
-For example, `cell-format$local$alignment` doesn’t have any other list
-bellow
+code, we can print a tree until second level if the list. For example,
+`cell-format$local$alignment` doesn’t have any other list bellow
 
 ``` r
 create_folter_tree <- function(x, 
@@ -318,19 +317,30 @@ create_folter_tree <- function(x,
 }
 
 start_path <- "cell-format"
-create_folter_tree(ExampleSheetFormats, start_path)
+create_folter_tree(ExampleSheetFormats, start_path, TRUE)
 dir_tree(start_path, recurse = 2)
 ```
 
     cell-format
     ├── local
     │   ├── alignment
+    │   │   ├── horizontal
+    │   │   ├── indent
+    │   │   ├── justifyLastLine
+    │   │   ├── readingOrder
+    │   │   ├── shrinkToFit
+    │   │   ├── textRotation
+    │   │   ├── vertical
+    │   │   └── wrapText
     │   ├── border
     │   │   ├── bottom
     │   │   ├── diagonal
+    │   │   ├── diagonalDown
+    │   │   ├── diagonalUp
     │   │   ├── end
     │   │   ├── horizontal
     │   │   ├── left
+    │   │   ├── outline
     │   │   ├── right
     │   │   ├── start
     │   │   ├── top
@@ -339,16 +349,39 @@ dir_tree(start_path, recurse = 2)
     │   │   ├── gradientFill
     │   │   └── patternFill
     │   ├── font
-    │   │   └── color
+    │   │   ├── bold
+    │   │   ├── color
+    │   │   ├── family
+    │   │   ├── italic
+    │   │   ├── name
+    │   │   ├── scheme
+    │   │   ├── size
+    │   │   ├── strike
+    │   │   ├── underline
+    │   │   └── vertAlign
+    │   ├── numFmt
     │   └── protection
+    │       ├── hidden
+    │       └── locked
     └── style
         ├── alignment
+        │   ├── horizontal
+        │   ├── indent
+        │   ├── justifyLastLine
+        │   ├── readingOrder
+        │   ├── shrinkToFit
+        │   ├── textRotation
+        │   ├── vertical
+        │   └── wrapText
         ├── border
         │   ├── bottom
         │   ├── diagonal
+        │   ├── diagonalDown
+        │   ├── diagonalUp
         │   ├── end
         │   ├── horizontal
         │   ├── left
+        │   ├── outline
         │   ├── right
         │   ├── start
         │   ├── top
@@ -357,20 +390,62 @@ dir_tree(start_path, recurse = 2)
         │   ├── gradientFill
         │   └── patternFill
         ├── font
-        │   └── color
+        │   ├── bold
+        │   ├── color
+        │   ├── family
+        │   ├── italic
+        │   ├── name
+        │   ├── scheme
+        │   ├── size
+        │   ├── strike
+        │   ├── underline
+        │   └── vertAlign
+        ├── numFmt
         └── protection
+            ├── hidden
+            └── locked
 
 ``` r
 unlink(start_path, recursive = TRUE)
 ```
 
 - **style_format**: An index into a table of style formats
-  `x$formats$style`.
+  `x$formats$style`. It is usually applied to blocks of cells, and
+  defines several formats at once as we can see in next picture.
 
 ![](img/07-excel-styles.png)
 
+- With this column we can find cells with bad style.
+
+![](img/08-bad-style-cells.png)
+
+``` r
+ExampleSheet[style_format == "Bad",
+             .(address,
+               character,
+               style_format)]
+```
+
+       address            character style_format
+    1:     A31                  bad          Bad
+    2:     A32 badboldrightupindent          Bad
+
 - **local_format_id**: An index into a table of style formats
-  `x$formats$local`.
+  `x$formats$local`. It is the more common kind and it is applied to
+  individual cells. This cell can help the place the difference between
+  `A31` and `A32` the second cell has the bold font local format.
+
+``` r
+ExampleSheet[style_format == "Bad" &
+               local_format_id %in% which(ExampleSheetFormats$local$font$bold),
+             .(address,
+               character,
+               style_format,
+               local_format_id)]
+```
+
+       address            character style_format local_format_id
+    1:     A32 badboldrightupindent          Bad              10
 
 ### Sales example spreadsheet
 
