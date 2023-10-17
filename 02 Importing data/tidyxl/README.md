@@ -1,6 +1,6 @@
-# How to Import Any Spreadsheet File into `R`: Using tidyxl and unpivotr
+# How to Import Any Spreadsheet File into `R`
 Ángel Féliz
-2023-10-15
+2023-10-17
 
 ## Introduction
 
@@ -37,21 +37,25 @@ your data analysis skills to the next level.
 # To import data
 library(tidyxl)
 
-# To print dir
+# To transform the results
+library(unpivotr)
+
+# To print dir trees
 library(fs)
 
 # To explore results of tidyxl
 library(data.table)
 
-# To transform the results
-library(unpivotr)
+# To show interactive tables
+library(reactable)
 ```
 
           Package Version Repository
-    1:   unpivotr   0.6.3       CRAN
+    1:  reactable   0.4.4       CRAN
     2: data.table  1.14.8       CRAN
     3:         fs   1.6.3       CRAN
-    4:     tidyxl   1.0.8       <NA>
+    4:   unpivotr   0.6.3       CRAN
+    5:     tidyxl   1.0.8       <NA>
 
 ## Exploring results from tidyxl
 
@@ -513,3 +517,311 @@ SalesCells[address %chin% paste0(LETTERS[1:3],"1"),
     1:      A1   Quarter  8.38000   15.6
     2:      B1     Month 20.10938   15.6
     3:      C1     Sales 12.55469   15.6
+
+## Tidying wild data with `unpivotr`
+
+### behead: Sense-of-purpose example
+
+1.  As we can see bellow the data starts at `[3,3]` with 7000, so all
+    the rows and columns before that point are headers that needs to be
+    defined
+
+``` r
+head(unpivotr::purpose$`up-left left-up`, 10L)
+```
+
+                      X2      X3     X4     X5    X6     X7
+    1               <NA>    <NA> Female   <NA>  Male   <NA>
+    2               <NA>    <NA>  0 - 6 7 - 10 0 - 6 7 - 10
+    3  Bachelor's degree 15 - 24   7000  27000  <NA>  13000
+    4               <NA> 25 - 44  12000 137000  9000  81000
+    5               <NA> 45 - 64  10000  64000  7000  66000
+    6               <NA>     65+   <NA>  18000  7000  17000
+    7        Certificate 15 - 24  29000 161000 30000 190000
+    8               <NA> 25 - 44  34000 179000 31000 219000
+    9               <NA> 45 - 64  30000 210000 23000 199000
+    10              <NA>     65+  12000  77000  8000 107000
+
+2.  Once we undertand the current structure we can **tokenize** the data
+    frame into one row per cell represented as new tibble of `row`,
+    `col`, `data_type` and `chr`.
+
+``` r
+PurposeCells <- as_cells(unpivotr::purpose$`up-left left-up`)
+head(PurposeCells)
+```
+
+    # A tibble: 6 × 4
+        row   col data_type chr              
+      <int> <int> <chr>     <chr>            
+    1     1     1 chr       <NA>             
+    2     2     1 chr       <NA>             
+    3     3     1 chr       Bachelor's degree
+    4     4     1 chr       <NA>             
+    5     5     1 chr       <NA>             
+    6     6     1 chr       <NA>             
+
+3.  Let’s set the first row as the `sex` column by defining the
+    direction to find the header from the data by going `up` and `left`
+    if the cell in empty after going `up`.
+
+``` r
+PurposeCells |>
+  behead(direction = "up-left",
+         name = "sex") |>
+  as.data.frame() |>
+  head()
+```
+
+      row col data_type   chr    sex
+    1   2   3       chr 0 - 6 Female
+    2   3   3       chr  7000 Female
+    3   4   3       chr 12000 Female
+    4   5   3       chr 10000 Female
+    5   6   3       chr  <NA> Female
+    6   7   3       chr 29000 Female
+
+4.  Confirm that the first row isn’t part of the problem to solve by
+    using the `rectify` function.
+
+``` r
+PurposeCells |>
+  behead(direction = "up-left",
+         name = "sex") |>
+  rectify() |>
+  head(10L)
+```
+
+    # A tibble: 10 × 7
+       `row/col` `1(A)`            `2(B)`  `3(C)` `4(D)` `5(E)` `6(F)`
+           <int> <chr>             <chr>   <chr>  <chr>  <chr>  <chr> 
+     1         2 <NA>              <NA>    0 - 6  7 - 10 0 - 6  7 - 10
+     2         3 Bachelor's degree 15 - 24 7000   27000  <NA>   13000 
+     3         4 <NA>              25 - 44 12000  137000 9000   81000 
+     4         5 <NA>              45 - 64 10000  64000  7000   66000 
+     5         6 <NA>              65+     <NA>   18000  7000   17000 
+     6         7 Certificate       15 - 24 29000  161000 30000  190000
+     7         8 <NA>              25 - 44 34000  179000 31000  219000
+     8         9 <NA>              45 - 64 30000  210000 23000  199000
+     9        10 <NA>              65+     12000  77000  8000   107000
+    10        11 Diploma           15 - 24 <NA>   14000  9000   11000 
+
+5.  Defining the `life-satisfication` column by going up from the data
+    to report.
+
+``` r
+PurposeCells |>
+  behead(direction = "up-left",
+         name = "sex") |>
+  behead("up", "life-satisfication") |>
+  as.data.frame() |>
+  head()
+```
+
+      row col data_type   chr    sex life-satisfication
+    1   3   3       chr  7000 Female              0 - 6
+    2   4   3       chr 12000 Female              0 - 6
+    3   5   3       chr 10000 Female              0 - 6
+    4   6   3       chr  <NA> Female              0 - 6
+    5   7   3       chr 29000 Female              0 - 6
+    6   8   3       chr 34000 Female              0 - 6
+
+6.  Defining the `qualification` column by going to the left and up if
+    the cell is empty.
+
+``` r
+PurposeCells |>
+  behead(direction = "up-left",
+         name = "sex") |>
+  behead("up", "life-satisfication") |>
+  behead("left-up", "qualification") |>
+  as.data.frame() |>
+  head()
+```
+
+      row col data_type    chr    sex life-satisfication     qualification
+    1   3   3       chr   7000 Female              0 - 6 Bachelor's degree
+    2   4   3       chr  12000 Female              0 - 6 Bachelor's degree
+    3   5   3       chr  10000 Female              0 - 6 Bachelor's degree
+    4   6   3       chr   <NA> Female              0 - 6 Bachelor's degree
+    5   3   4       chr  27000 Female             7 - 10 Bachelor's degree
+    6   4   4       chr 137000 Female             7 - 10 Bachelor's degree
+
+7.  Defining the `age-band` column by going to the left in the remaining
+    first row.
+
+``` r
+PurposeCells |>
+  behead(direction = "up-left",
+         name = "sex") |>
+  behead("up", "life-satisfication") |>
+  behead("left-up", "qualification") |>
+  behead("left", "age-band") |>
+  as.data.frame() |>
+  head()
+```
+
+      row col data_type    chr    sex life-satisfication     qualification age-band
+    1   3   3       chr   7000 Female              0 - 6 Bachelor's degree  15 - 24
+    2   4   3       chr  12000 Female              0 - 6 Bachelor's degree  25 - 44
+    3   5   3       chr  10000 Female              0 - 6 Bachelor's degree  45 - 64
+    4   6   3       chr   <NA> Female              0 - 6 Bachelor's degree      65+
+    5   3   4       chr  27000 Female             7 - 10 Bachelor's degree  15 - 24
+    6   4   4       chr 137000 Female             7 - 10 Bachelor's degree  25 - 44
+
+8.  Last but not least, we can rearrange the columns and transform the
+    values from `character` to `integer`.
+
+``` r
+PurposeCells |>
+  behead(direction = "up-left",
+         name = "sex") |>
+  behead("up", "life-satisfication") |>
+  behead("left-up", "qualification") |>
+  behead("left", "age-band") |>
+  as.data.table() |>
+  (\(DT) DT[, .(sex,
+                `life-satisfication`,
+                qualification,
+                `age-band`,
+                count = as.integer(chr))] )() |>
+  head()
+```
+
+          sex life-satisfication     qualification age-band  count
+    1: Female              0 - 6 Bachelor's degree  15 - 24   7000
+    2: Female              0 - 6 Bachelor's degree  25 - 44  12000
+    3: Female              0 - 6 Bachelor's degree  45 - 64  10000
+    4: Female              0 - 6 Bachelor's degree      65+     NA
+    5: Female             7 - 10 Bachelor's degree  15 - 24  27000
+    6: Female             7 - 10 Bachelor's degree  25 - 44 137000
+
+### behead_if: Parry Potter example
+
+In the prior example each header was defined in single row or column,
+but what can be do when **several headers share the same column**,
+that’s when `behead_if` is really useful we can define conditions to see
+only a particular subset of cells.
+
+1.  Start importing the tokenized cells and cell’s formats.
+
+``` r
+hp_path <- system.file("extdata/harry-potter.xlsx", package = "unpivotr")
+
+hp_cells <- xlsx_cells(hp_path, sheet = "pivoted")
+setDT(hp_cells)
+
+hp_formats <- xlsx_formats(hp_path)
+```
+
+![](img/09-hp-data.png) 2. Then define the `domitory` and `name` columns
+using the `behead` function.
+
+``` r
+hp_cells[!is.na(content)] |>
+  behead("up-left", "dormitory") |>
+  behead("up", "name") |>
+  rectify() |>
+  as.data.table()
+```
+
+       row/col                      1(A) 2(B) 3(C) 4(D)         5(E)
+    1:       3                    Castle   11   11    7            2
+    2:       4                    Charms    2    6    0            0
+    3:       5                   Potions    9    5    7            2
+    4:       6                   Grounds    7    8   11            3
+    5:       7                 Herbology    5    1    8 10 - really?
+    6:       8 Care of Magical Creatures    2    7    3            3
+
+3.  Then we can use the **bold** values of the left and up to the define
+    the new column location.
+
+``` r
+hp_cells[!is.na(content)] |>
+  behead("up-left", "dormitory") |>
+  behead("up", "name") |>
+  behead_if(hp_formats$local$font$bold[local_format_id],
+            direction = "left-up",
+            name = "location") |>
+  rectify() |>
+  as.data.table()
+```
+
+       row/col                      1(A) 2(B) 3(C) 4(D)         5(E)
+    1:       3                      <NA>   11   11    7            2
+    2:       4                    Charms    2    6    0            0
+    3:       5                   Potions    9    5    7            2
+    4:       6                      <NA>    7    8   11            3
+    5:       7                 Herbology    5    1    8 10 - really?
+    6:       8 Care of Magical Creatures    2    7    3            3
+
+4.  After removing the **bold** headers we just need to select the left
+    headers and create the new column subject leaving the related
+    subtotal with that category empty.
+
+``` r
+hp_cells[!is.na(content)] |>
+  behead("up-left", "dormitory") |>
+  behead("up", "name") |>
+  behead_if(hp_formats$local$font$bold[local_format_id],
+            direction = "left-up",
+            name = "location") |>
+  behead("left",  "subject") |>
+  as.data.table() |>
+  subset(subset = is.na(subject),
+         select = c("address",
+                    "dormitory",
+                    "name",
+                    "location",
+                    "subject",
+                    "numeric"))
+```
+
+       address dormitory     name location subject numeric
+    1:      B3     Witch Hermione   Castle    <NA>      11
+    2:      C3     Witch    Ginny   Castle    <NA>      11
+    3:      D3    Wizard    Harry   Castle    <NA>       7
+    4:      E3    Wizard      Ron   Castle    <NA>       2
+    5:      B6     Witch Hermione  Grounds    <NA>       7
+    6:      C6     Witch    Ginny  Grounds    <NA>       8
+    7:      D6    Wizard    Harry  Grounds    <NA>      11
+    8:      E6    Wizard      Ron  Grounds    <NA>       3
+
+5.  Finally, organize the data frame to report.
+
+``` r
+hp_cells[!is.na(content)] |>
+  behead("up-left", "dormitory") |>
+  behead("up", "name") |>
+  behead_if(hp_formats$local$font$bold[local_format_id],
+            direction = "left-up",
+            name = "location") |>
+  behead("left",  "subject") |>
+  as.data.table() |>
+  subset(subset = !is.na(subject)) |>
+  (\(DT) DT[order(dormitory, name, location, subject),
+            .(dormitory,
+              name,
+              location,
+              subject,
+              mark = numeric,
+              other = character)] )()
+```
+
+        dormitory     name location                   subject mark        other
+     1:     Witch    Ginny   Castle                    Charms    6         <NA>
+     2:     Witch    Ginny   Castle                   Potions    5         <NA>
+     3:     Witch    Ginny  Grounds Care of Magical Creatures    7         <NA>
+     4:     Witch    Ginny  Grounds                 Herbology    1         <NA>
+     5:     Witch Hermione   Castle                    Charms    2         <NA>
+     6:     Witch Hermione   Castle                   Potions    9         <NA>
+     7:     Witch Hermione  Grounds Care of Magical Creatures    2         <NA>
+     8:     Witch Hermione  Grounds                 Herbology    5         <NA>
+     9:    Wizard    Harry   Castle                    Charms    0         <NA>
+    10:    Wizard    Harry   Castle                   Potions    7         <NA>
+    11:    Wizard    Harry  Grounds Care of Magical Creatures    3         <NA>
+    12:    Wizard    Harry  Grounds                 Herbology    8         <NA>
+    13:    Wizard      Ron   Castle                    Charms    0         <NA>
+    14:    Wizard      Ron   Castle                   Potions    2         <NA>
+    15:    Wizard      Ron  Grounds Care of Magical Creatures    3         <NA>
+    16:    Wizard      Ron  Grounds                 Herbology   NA 10 - really?

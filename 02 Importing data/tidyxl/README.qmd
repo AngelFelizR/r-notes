@@ -1,5 +1,5 @@
 ---
-title: "How to Import Any Spreadsheet File into `R`: Using tidyxl and unpivotr"
+title: "How to Import Any Spreadsheet File into `R`"
 date: "`r Sys.Date()`"
 author: "Ángel Féliz"
 ---
@@ -34,15 +34,19 @@ R.version$version.string
 # To import data
 library(tidyxl)
 
-# To print dir
+# To transform the results
+library(unpivotr)
+
+# To print dir trees
 library(fs)
 
 # To explore results of tidyxl
 library(data.table)
 
-# To transform the results
-library(unpivotr)
+# To show interactive tables
+library(reactable)
 ```
+
 
 ```{r}
 #| echo: false
@@ -276,5 +280,185 @@ SalesCells[address %chin% paste0(LETTERS[1:3],"1"),
              character,
              width,
              height)]
+```
+
+
+## Tidying wild data with `unpivotr`
+
+### behead: Sense-of-purpose example
+
+1. As we can see bellow the data starts at `[3,3]` with 7000, so all the rows and columns before that point are headers that needs to be defined
+
+```{r}
+head(unpivotr::purpose$`up-left left-up`, 10L)
+```
+
+2. Once we undertand the current structure we can **tokenize** the data frame into one row per cell represented as new tibble of `row`, `col`, `data_type` and `chr`.
+
+```{r}
+PurposeCells <- as_cells(unpivotr::purpose$`up-left left-up`)
+head(PurposeCells)
+```
+
+
+3. Let's set the first row as the `sex` column by defining the direction to find the header from the data by going `up` and `left` if the cell in empty after going `up`.
+
+```{r}
+PurposeCells |>
+  behead(direction = "up-left",
+         name = "sex") |>
+  as.data.frame() |>
+  head()
+```
+
+4. Confirm that the first row isn't part of the problem to solve by using the `rectify` function.
+
+```{r}
+PurposeCells |>
+  behead(direction = "up-left",
+         name = "sex") |>
+  rectify() |>
+  head(10L)
+```
+
+
+5. Defining the `life-satisfication` column by going up from the data to report.
+
+```{r}
+PurposeCells |>
+  behead(direction = "up-left",
+         name = "sex") |>
+  behead("up", "life-satisfication") |>
+  as.data.frame() |>
+  head()
+```
+
+
+6. Defining the `qualification` column by going to the left and up if the cell is empty.
+
+```{r}
+PurposeCells |>
+  behead(direction = "up-left",
+         name = "sex") |>
+  behead("up", "life-satisfication") |>
+  behead("left-up", "qualification") |>
+  as.data.frame() |>
+  head()
+```
+
+7. Defining the `age-band` column by going to the left in the remaining first row.
+
+```{r}
+PurposeCells |>
+  behead(direction = "up-left",
+         name = "sex") |>
+  behead("up", "life-satisfication") |>
+  behead("left-up", "qualification") |>
+  behead("left", "age-band") |>
+  as.data.frame() |>
+  head()
+```
+
+8. Last but not least, we can rearrange the columns and transform the values from `character` to `integer`.
+
+
+```{r}
+PurposeCells |>
+  behead(direction = "up-left",
+         name = "sex") |>
+  behead("up", "life-satisfication") |>
+  behead("left-up", "qualification") |>
+  behead("left", "age-band") |>
+  as.data.table() |>
+  (\(DT) DT[, .(sex,
+                `life-satisfication`,
+                qualification,
+                `age-band`,
+                count = as.integer(chr))] )() |>
+  head()
+```
+
+### behead_if: Parry Potter example
+
+In the prior example each header was defined in single row or column, but what can be do when **several headers share the same column**, that's when `behead_if` is really useful we can define conditions to see only a particular subset of cells.
+
+1. Start importing the tokenized cells and cell's formats.
+
+```{r}
+#| output: false
+
+hp_path <- system.file("extdata/harry-potter.xlsx", package = "unpivotr")
+
+hp_cells <- xlsx_cells(hp_path, sheet = "pivoted")
+setDT(hp_cells)
+
+hp_formats <- xlsx_formats(hp_path)
+```
+
+
+![](img/09-hp-data.png)
+2. Then define the `domitory` and `name` columns using the `behead` function.
+
+```{r}
+hp_cells[!is.na(content)] |>
+  behead("up-left", "dormitory") |>
+  behead("up", "name") |>
+  rectify() |>
+  as.data.table()
+```
+
+
+3. Then we can use the **bold** values of the left and up to the define the new column location.
+
+```{r}
+hp_cells[!is.na(content)] |>
+  behead("up-left", "dormitory") |>
+  behead("up", "name") |>
+  behead_if(hp_formats$local$font$bold[local_format_id],
+            direction = "left-up",
+            name = "location") |>
+  rectify() |>
+  as.data.table()
+```
+
+4. After removing the **bold** headers we just need to select the left headers and create the new column subject leaving the related subtotal with that category empty.
+
+```{r}
+hp_cells[!is.na(content)] |>
+  behead("up-left", "dormitory") |>
+  behead("up", "name") |>
+  behead_if(hp_formats$local$font$bold[local_format_id],
+            direction = "left-up",
+            name = "location") |>
+  behead("left",  "subject") |>
+  as.data.table() |>
+  subset(subset = is.na(subject),
+         select = c("address",
+                    "dormitory",
+                    "name",
+                    "location",
+                    "subject",
+                    "numeric"))
+```
+
+5. Finally, organize the data frame to report.
+
+```{r}
+hp_cells[!is.na(content)] |>
+  behead("up-left", "dormitory") |>
+  behead("up", "name") |>
+  behead_if(hp_formats$local$font$bold[local_format_id],
+            direction = "left-up",
+            name = "location") |>
+  behead("left",  "subject") |>
+  as.data.table() |>
+  subset(subset = !is.na(subject)) |>
+  (\(DT) DT[order(dormitory, name, location, subject),
+            .(dormitory,
+              name,
+              location,
+              subject,
+              mark = numeric,
+              other = character)] )()
 ```
 
