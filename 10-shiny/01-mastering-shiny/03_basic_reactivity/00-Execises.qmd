@@ -1,0 +1,15 @@
+---
+title: "3. Basic Reactivity"
+---
+## 1. Exercises
+
+1.
+
+**Solution**
+
+# ```{r}
+# #| echo: true
+# #| eval: false
+# #| file: 03-02-01-exercise.R
+# ```
+

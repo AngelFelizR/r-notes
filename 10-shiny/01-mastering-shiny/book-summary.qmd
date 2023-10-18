@@ -1,0 +1,146 @@
+---
+title: "Book Summary"
+---
+
+## 1. Introduction to Shiny
+
+
+### 1.1. Basic Elements
+
+To create a Shiny app you need follow the next steps:
+
+- Define the **UI** with the `shiny::fluidPage` as the **layout function**, where we can add *input* and *output* controls which create plain **html**.
+- Define server function with the arguments:
+  - `input`: To get the user results
+  - `outcome`: To assign **ID** to rendered results.
+  - `session`
+- Run all together in the `shiny::ShinyApp` function.
+
+> **While shiny is running R is busy** and we can’t run new commands at the R console until the Shiny app stops.
+
+Here is an simple example
+
+```r
+library(shiny)
+
+# Setting up the basic visual structure (layout function)
+# functions under this part only add html code
+ui <- fluidPage(
+
+  # Adding a Select Box (input control)
+  selectInput(
+    # Name for variable selected by the user
+    "dataset",
+
+    # Element title
+    label = "Dataset",
+
+    # List to display
+    choices = ls("package:datasets")
+  ),
+
+  # Adding output controls to define where to put
+  # the RENDERED output based on server output IDs
+  # (output controls)
+  verbatimTextOutput("TableSummary"), # displays code
+  tableOutput("TableHead")           # displays tables
+
+)
+
+
+# Defining a function as server
+server <- function(input, output, session) {
+
+  # Assigning an ID for this output
+  output$TableSummary <- renderPrint({
+
+    # Making sure we are receiving the data
+    # from the datasets package rather than
+    # any other variable the global environment
+    get(input$dataset, "package:datasets") |>
+      # Rendering the printed value we want to report
+      summary()
+
+  })
+
+  # Assigning an ID for this output
+  output$TableHead <- renderTable({
+
+    # Rendering the table we want to report
+    get(input$dataset, "package:datasets") |>
+      head()
+
+  })
+}
+
+# Start the app
+shinyApp(ui, server)
+```
+
+### 1.2. Reactive expressions
+
+The code `get(input$dataset, "package:datasets")` is duplicated and to solve that problem we need to create a **reactive expression** as they **only runs one time** until they **need** to be updated.
+
+To create reactive expressions you just need to:
+
+1. Wrap your code in a `reactive({})` function.
+2. Save the result in a object
+3. Call the object as an **empty function**.
+
+As you can see in the next example:
+
+```r
+server <- function(input, output, session) {
+  # Create a reactive expression
+  dataset <- reactive({
+    get(input$dataset, "package:datasets")
+  })
+
+  output$summary <- renderPrint({
+    # Use a reactive expression by calling it like a function
+    summary(dataset())
+  })
+  
+  output$table <- renderTable({
+    dataset()
+  })
+}
+```
+
+## 2. Basic UI
+
+![](02_basic_ui/img/UI-Elements.svg)
+
+## 3. Basic reactivity
+
+> **The key idea of reactive programming is to specify a graph of dependencies so that when an input changes, all related outputs are automatically updated.**
+
+Every **shiny** runs based on the next objects.
+- `ui`: Contains the HTML presented to every user of your app.
+- `server`: Shiny invokes your `server()` function each time a new session starts, to show an independent version of the app for each user.
+
+
+### The server function
+
+#### `input` server argument
+
+- It is a **list-like object** that contains all the input data sent **from the browser**, available by the syntax `input$ID`.
+- It is an **only-read** element when called from a **reactive context** created by a function like `renderText()` or `reactive()`
+
+#### `Output` server argument
+
+- It is a **list-like object** object named according to next syntax `output$ID`.
+- You always use the output object in concert with a `render` function as:
+  - It sets up a special reactive context that automatically **tracks what inputs the output uses**.
+  - It **converts** the output of your R code **into HTML** suitable for display on a web page.
+  
+### Reactive programming
+
+- **Reactive programming**:  This is the style of programming you’re used to in your analysis scripts: you command R to load your data, transform it, visualise it, and save the results to disk.
+- **Declarative programming**: Uses higher-level goals or describe important constraints. the software figures out how to achieve them without further intervention. 
+
+
+
+
+
+
