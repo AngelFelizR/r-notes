@@ -1,4 +1,4 @@
-3. Basic Reactivity - Excercises
+3. Basic Reactivity
 ================
 
 - <a href="#reactive-programming" id="toc-reactive-programming">Reactive
@@ -78,12 +78,6 @@ shinyApp(ui, server3)
 
 2.  Draw the reactive graph for the following server functions:
 
-``` r
-library(DiagrammeR)
-```
-
-    Warning: package 'DiagrammeR' was built under R version 4.2.3
-
 **Solution**
 
 ``` r
@@ -94,48 +88,7 @@ server1 <- function(input, output, session) {
 }
 ```
 
-``` r
-grViz("
-digraph reactive_graph_1 {
-
-  # General properties
-  graph [rankdir = LR, fontsize = 10, overlap = true]
-
-
-  # Defining input nodes
-  node [shape = cds,
-        fontname = Helvetica,
-        rank = 1]
-  a; b; d
-  
-  subgraph {
-  rank = same; a; b; d;
-  }
-  
-  
-  # Defining Reactive Expressions
-  node [shape = box,
-        fontname = Helvetica,
-        height = 0.15]
-  c; e
-
-
-  # Defining output
-  node [shape = circle,
-        width = 0.5]
-  f
-
-  # several 'edge' statements
-  a -> c
-  b -> c
-  c -> e
-  d -> e
-  e -> f
-}
-")
-```
-
-![](00-Execises_files/figure-gfm/unnamed-chunk-3-1.png)
+<img src="img/unnamed-chunk-2-1.png" width="600" />
 
 ``` r
 server2 <- function(input, output, session) {
@@ -145,46 +98,7 @@ server2 <- function(input, output, session) {
 }
 ```
 
-``` r
-grViz("
-digraph reactive_graph_2 {
-
-  # General properties
-  graph [rankdir = LR, fontsize = 10, overlap = true]
-
-
-  # Defining input nodes
-  node [shape = cds,
-        fontname = Helvetica,
-        rank = 1]
-  y2; y1; x3; x2; x1
-  
-  subgraph {
-  rank = same; y2; y1; x3; x2; x1
-  }
-  
-  
-  # Defining Reactive Expressions
-  node [shape = box,
-        fontname = Helvetica,
-        height = 0.15]
-  y; x
-
-
-  # Defining output
-  node [shape = circle,
-        width = 0.5]
-  z
-
-  # several 'edge' statements
-  {x1, x2, x3} -> x
-  {y1, y2} -> y
-  {x, y} -> z
-}
-")
-```
-
-![](00-Execises_files/figure-gfm/unnamed-chunk-4-1.png)
+<img src="img/unnamed-chunk-3-1.png" width="600" />
 
 ``` r
 server3 <- function(input, output, session) {
@@ -195,43 +109,7 @@ server3 <- function(input, output, session) {
 }
 ```
 
-``` r
-grViz("
-digraph reactive_graph_2 {
-
-  # General properties
-  graph [rankdir = LR, fontsize = 10, overlap = true]
-
-
-  # Defining input nodes
-  node [shape = cds,
-        fontname = Helvetica,
-        rank = 1]
-  a; b; c; d
-  
-  subgraph {
-  rank = same; a; b; c; d
-  }
-  
-  
-  # Defining Reactive Expressions
-  node [shape = box,
-        fontname = Helvetica,
-        height = 0.15]
-  ar[label = 'a']; br[label = 'b']; cr[label = 'c']; dr[label = 'd'];
-
-
-  # several 'edge' statements
-  a -> ar
-  {ar, b} -> br
-  {br, c} -> cr
-  {cr, d} -> dr
-  
-}
-")
-```
-
-![](00-Execises_files/figure-gfm/unnamed-chunk-5-1.png)
+<img src="img/unnamed-chunk-4-1.png" width="600" />
 
 3.  Why will this code fail?
 

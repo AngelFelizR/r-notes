@@ -144,11 +144,11 @@ server <- function(input, output, session) {
 }
 ```
 
-![](03_basic_reactivity/img/01-graph.png)
+![](03_basic_reactivity/img/01-graph.png){width=600 fig-align="center"}
 
 As reactive expressions can use the results of a reactive expression in an output (like *inputs*) and depend on inputs (like *outputs*), they fit well as **producers** and **consumers**.
 
-![](03_basic_reactivity/img/02-producers-consumers.png)
+![](03_basic_reactivity/img/02-producers-consumers.png){width=600 fig-align="center"}
 
 ### Controlling evaluation
 
@@ -172,7 +172,7 @@ server <- function(input, output, session) {
   }, res = 96)
 }
 ```
-![](03_basic_reactivity/img/03-timing-timer.png)
+![](03_basic_reactivity/img/03-timing-timer.png){width=600 fig-align="center"}
 
 2. If you have a long process you might want to require the user to opt-in to performing the expensive calculation by requiring them to click a button `actionButton()` and then call the `eventReactive()` to update the app. 
 
@@ -203,7 +203,7 @@ server <- function(input, output, session) {
 }
 ```
 
-![](03_basic_reactivity/img/04-timing-button.png)
+![](03_basic_reactivity/img/04-timing-button.png){width=600 fig-align="center"}
 
 3. If you need to reach outside of the app and cause side-effects to happen else where in the world you could find `observeEvent()` useful to debug, as it runs its argument `handlerExpr` every time the `eventExpr` argument is updated.
 
@@ -222,4 +222,4 @@ server <- function(input, output, session) {
   })
 }
 ```
-![](03_basic_reactivity/img/05-observe-graph.png)
+![](03_basic_reactivity/img/05-observe-graph.png){width=600 fig-align="center"}

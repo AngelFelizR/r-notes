@@ -1,5 +1,5 @@
 ---
-title: "3. Basic Reactivity - Excercises"
+title: "3. Basic Reactivity"
 ---
 
 ## Reactive programming
@@ -41,10 +41,6 @@ server3 <- function(input, output, server) {
 
 2. Draw the reactive graph for the following server functions:
 
-```{r}
-library(DiagrammeR)
-```
-
 **Solution**
 
 ```r
@@ -55,6 +51,13 @@ server1 <- function(input, output, session) {
 }
 ```
 ```{r}
+#| message: false
+#| warning: false
+#| echo: false
+#| eval: false
+
+library(DiagrammeR)
+
 grViz("
 digraph reactive_graph_1 {
 
@@ -96,6 +99,8 @@ digraph reactive_graph_1 {
 
 ```
 
+![](img/unnamed-chunk-2-1.png){width=600}
+
 
 ```r
 server2 <- function(input, output, session) {
@@ -106,6 +111,11 @@ server2 <- function(input, output, session) {
 ```
 
 ```{r}
+#| message: false
+#| warning: false
+#| echo: false
+#| eval: false
+
 grViz("
 digraph reactive_graph_2 {
 
@@ -144,6 +154,8 @@ digraph reactive_graph_2 {
 ")
 ```
 
+![](img/unnamed-chunk-3-1.png){width=600}
+
 
 ```r
 server3 <- function(input, output, session) {
@@ -155,6 +167,11 @@ server3 <- function(input, output, session) {
 ```
 
 ```{r}
+#| message: false
+#| warning: false
+#| echo: false
+#| eval: false
+
 grViz("
 digraph reactive_graph_2 {
 
@@ -189,6 +206,8 @@ digraph reactive_graph_2 {
 }
 ")
 ```
+
+![](img/unnamed-chunk-4-1.png){width=600}
 
 3. Why will this code fail?
 
