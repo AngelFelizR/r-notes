@@ -1,12 +1,8 @@
-# 2. Basic UI
+2. Basic UI
+================
 
-- [Mind Map Summary](#mind-map-summary)
-- [2.2.8. Exercises](#exercises)
-- [2.3.5. Exercises](#exercises-1)
-
-## Mind Map Summary
-
-![](img/UI-Elements.svg)
+- <a href="#exercises" id="toc-exercises">2.2.8. Exercises</a>
+- <a href="#exercises-1" id="toc-exercises-1">2.3.5. Exercises</a>
 
 ## 2.2.8. Exercises
 
@@ -123,12 +119,12 @@ shinyApp(ui, server)
 1.  Which of textOutput() and verbatimTextOutput() should each of the
     following render functions be paired with?
 
-|                 **Question**                 |     **Solution**     |
-|:--------------------------------------------:|:--------------------:|
-|         renderPrint(summary(mtcars))         | verbatimTextOutput() |
-|         renderText(“Good morning!”)          |     textOutput()     |
-|        renderPrint(t.test(1:5, 2:6))         | verbatimTextOutput() |
-| renderText(str(lm(mpg ~ wt, data = mtcars))) | verbatimTextOutput() |
+|                 **Question**                  |     **Solution**     |
+|:---------------------------------------------:|:--------------------:|
+|         renderPrint(summary(mtcars))          | verbatimTextOutput() |
+|          renderText(“Good morning!”)          |     textOutput()     |
+|         renderPrint(t.test(1:5, 2:6))         | verbatimTextOutput() |
+| renderText(str(lm(mpg \~ wt, data = mtcars))) | verbatimTextOutput() |
 
 2.  Re-create the Shiny app from Section 2.3.3, this time setting height
     to 300px and width to 700px. Set the plot “alt” text so that a

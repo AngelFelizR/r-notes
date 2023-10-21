@@ -2,10 +2,6 @@
 title: "2. Basic UI"
 ---
 
-## Mind Map Summary
-
-![](img/UI-Elements.svg)
-
 ## 2.2.8. Exercises
 
 1. When space is at a premium, it’s useful to label text boxes using a placeholder that appears inside the text entry area. How do you call `textInput()` to generate the UI below?
