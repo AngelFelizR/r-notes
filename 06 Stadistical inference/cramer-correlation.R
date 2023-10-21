@@ -11,7 +11,8 @@ get_cramer <- function(df,
   setnames(df, c(V1, V2), c("V1", "V2"))
   
   df[, .N, c("V1", "V2")] |>
-    tidytext::cast_sparse("V1", "V2", "N") |>
+    dcast(V1 ~ V2, value.var = "N") |>
+    (\(x) as.data.frame(x[, !c("V1")], row.names = x$V1) )() |>
     as.matrix() |>
     rcompanion::cramerV(...)
 }
