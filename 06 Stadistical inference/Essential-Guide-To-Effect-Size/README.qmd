@@ -1,0 +1,67 @@
+---
+title: "Essential Guide To Effect Size"
+format: html
+---
+
+## Introduction
+
+The main focus of this book is to answer the next questions:
+
+|**Question**|**Solution**|
+|:-----------|:-----------|
+|1. How do I interpret the practical or everyday significance of my research results?|*You need to understand how to interpret the _effect sizes_ rather than concluding based on p-values*|
+|2. Does my study have sufficient power to find what I am seeking?|*Insufficient power means an increased risk of missing real effects (error type II) which increase the risk of publishing false positives (error type I)*|
+|3.  How do I draw conclusions from past studies reporting disparate results?|*You need to perform a _meta-analysis_ based on the _effect size estimates_ that have been reported in previous studies to provide a precise conclusion regarding the _direction and magnitude of an effect_ even when the underlying data come from dissimilar studies.*|
+
+## Introduction to effect sizes
+
+- We get a **statistically significant result** when we have low probability of getting the current result by change.
+
+- We get a **practically significant result** when it makes sense in the real world.
+
+Practical significance is inferred from the size of the effect while statistical significance is inferred from the precision of the estimate
+
+The smaller the sample, the less likely a result will be statistically significant regardless of the effect size.
+
+<br>
+
+It's important to understand that:
+
+1. $\text{nonsignificant t test} \neq (\mu_1 - \mu_2 = 0)$
+
+2. What the *t* test tells us is that we cannot rule out **chance as a possible explanation** for the difference.
+
+3. If the change effect size seems to be large enough **it would be worthy  to conduct a bigger trial**.
+
+To evaluate the **practical significance** or results we might need to estimate of one or more effect sizes.
+
+An effect size refers to the magnitude of the result as it occurs
+
+An **effect** can be:
+
+1. The result of a treatment revealed in a **comparison between groups**.
+
+2. Degree of association between two related variables.
+
+how big is the effect and how precise is the estimate?
+
+the results are **practically meaningful** yet statistically nonsignificant.
+ 
+ 
+Note how both the effects – pain relief, financial savings, wrinkle reduction – and their magnitudes immediate, 30%, 10 years younger – are expressed in terms that mean something to the average newspaper reader.
+
+he scientist has a two-fold responsibility to society:
+
+- To conduct rigorous research leading to the reporting of precise effect size estimates in language that facilitates interpretation by others (discussed in this chapter)
+
+- To interpret the practical significance or meaning of research results (discussed in the next chapter).
+
+## Two families of effects
+
+### The d family: assessing the differences between groups
+
+Consider a medical experiment that showed that the probability of recovery was $p$ in a treatment group and $q$ in a control group.
+
+- Consider the difference between the two probabilities(p–q).
+- Calculate the risk ratio or relative risk (p/q)
+- Calculate the odds ratio (p/(1–p)) / (q/(1–q))

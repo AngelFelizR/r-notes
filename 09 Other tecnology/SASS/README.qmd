@@ -1,0 +1,157 @@
+---
+title: "SASS"
+format: html
+embed-resources: true
+---
+
+## Introducción
+
+SASS es un preprocesador de CSS basado en Ruby, que se puede utilizar mediante los siguiente vías:
+
+- Instalación global
+- Node js
+- Dart Sass
+- Javascript API
+- Live Sass Compiler de VSCode
+
+Usar Sass nos da las siguientes ventajas:
+
+- Permite que el código CSS se pueda escribir de manera mucho más rápida y sencilla.
+- Facilita el mantenimiento del código.
+- Permite reutilizar código.
+- Facilita la creación de páginas responsivas.
+
+Otros preprocesadores basados en Javascript son:
+
+- Stylus
+- LESS
+
+## Tipos de archivos
+
+- **.sass:** Utiliza una sintaxis identada, quitando el uso de "{}" y el ";" tras cada declaración.
+
+![](img/sass-sintaxis-example.png)
+
+- **.scss:** Utiliza sintaxis tradicional de CSS, incluyendo el uso de "{}" y el ";" tras cada declaración.
+
+![](img/scss-sintaxis-example.png)
+
+## Tips de Sass statements
+
+### Top level
+
+Estos solo pueden estar al inicio:
+
+- Imports
+- Definición de un Mixin
+- Definición de una Función
+- Módulos
+
+También se recomienda definir variables y limpiar el proyecto con:
+
+```scss
+body{
+    margin: 0;
+    padding: 0;
+}
+```
+
+### Universal
+
+Pueden estar en cualquier parte de la hoja de estilos:
+
+- Variables
+- Estructura de control
+- Reglas de @error, @warn y @debug
+- Declaraciones CSS, como reglas de estilo, At-rules y Mixins.
+
+## Selectores
+
+Define sobre qué elementos se aplicarán un conjunto de reglas CSS y pueden ser de:
+
+- Clase
+
+```css
+.class-name{}
+```
+
+- Id
+
+```css
+#id-name{}
+```
+- Tipo
+
+```css
+tag-name{}
+```
+
+- Atributo
+
+### Nesting
+
+Esta técnica consiste en declarar selectores dentro de otros selectores con el fin de simplificar el código al escribir los mismos en el orden definido en el html file.
+
+![](img/nesting-selectors.png)
+
+## Variables
+
+Para definir una variable solo tenemos que iniciar con **$**, como en los siguientes ejemplos.
+
+```css
+$primary-color: blue;
+$secundary-color: green;
+$terciary-color: purple;
+```
+
+Estas pueden almacenar **expressiones** del tipo:
+
+- Números
+- Strings
+- Colores
+- Booleanos
+- Null
+- Listas
+- Mapas
+
+### Tipos de variables
+
+- **Locales**: Son declaradas dentro de bloques "{}" y los selectores anidados pueden acceder a estas variables.
+
+- **Global**: Son todas las variables declaras fuera de un selector y puede ser accedidas en cualquier parte de la hoja de estilos.
+
+:::{.callout-tip title="Toma ventaja del nivel de scope"}
+Puedes usar el mismo nombre de variable para almacer valores a diferentes niveles. Esta técnica es conocida como **shadowing**.
+:::
+
+:::{.callout-important title="!global flag"}
+Aunque esta flag te permite modificar una variable global desde un scope local no la veo como una buena práctica.
+:::
+
+## CSS At-rules
+
+Se declaran con "@", pueden realizar acciones y permiten mantener la compatibilidad con futuras versiones de CSS.
+
+**General Rules**
+
+- @forward: recibe como parametro una URL y nos ayuda a cargar los estilos de nuestra hoja de estilos, es muy importante hacer uso de @use para que los modulos esten disponibles en nuestra hoja de estilos.
+
+- @use: importa modulos, estilos y funciones de otras hojas de estilos.
+
+- @import:importa modulos, estilos y funciones pero **hace a los estilos globales**.
+
+- @function: permite crear funciones personalizadas, que se pueden agregar a las default Sass.
+
+- @for, @if, @each, @while: tienen que ver con estructuras de control, se pueden usar dentro de una función
+
+- @extend: tiene que ver con el concepto de herencia.
+
+
+**Compilación**
+
+- @at-root: se encarga de cargar nuestros estilos en el root del css.
+
+- @error, @warn @debug: asisten en el processo de compilación a CSS.
+
+- @include: nos ayuda a invocar los **mixins**.
+
