@@ -2,6 +2,19 @@
 title: "4. ER injuries"
 ---
 
+```{r}
+#| include: false
+
+knitr::opts_chunk$set(
+  message = FALSE,
+  fig.width = 8,
+  fig.height = 4,
+  fig.align = "center",
+  dpi = 300
+)
+```
+
+
 ## Loading libraries
 
 ```{r}
@@ -67,15 +80,20 @@ injuries_toilet |>
   count(age, sex, wt = weight, sort = TRUE) |>
   left_join(population, by = c("age", "sex")) |>
   mutate(rate = n / population * 1e4) |>
-  ggplot(aes(age, n, colour = sex)) +
+  ggplot(aes(age, rate, colour = sex)) +
   geom_line(na.rm = TRUE) +
   labs(y = "Injuries per 10,000 people")
 ```
 
-- **What can we learn from narratives?**
+  - **What can we learn from narratives?**
 
 ```{r}
+set.seed(125)
+
 injuries_toilet |>
+  filter(str_length(narrative) < 100) |>
   sample_n(5) |>
   pull(narrative)
+
+set.seed(NULL)
 ```
