@@ -1,22 +1,15 @@
-Book Summary
-================
+# Book Summary
 
-- <a href="#introduction-to-shiny" id="toc-introduction-to-shiny">1.
-  Introduction to Shiny</a>
-  - <a href="#basic-elements" id="toc-basic-elements">1.1. Basic
-    Elements</a>
-  - <a href="#reactive-expressions" id="toc-reactive-expressions">1.2.
-    Reactive expressions</a>
-- <a href="#basic-ui" id="toc-basic-ui">2. Basic UI</a>
-- <a href="#basic-reactivity" id="toc-basic-reactivity">3. Basic
-  reactivity</a>
-  - <a href="#the-server-function-arguments"
-    id="toc-the-server-function-arguments">The server function arguments</a>
-  - <a href="#reactive-programming" id="toc-reactive-programming">Reactive
-    programming</a>
-  - <a href="#reactive-graph" id="toc-reactive-graph">Reactive graph</a>
-  - <a href="#controlling-evaluation"
-    id="toc-controlling-evaluation">Controlling evaluation</a>
+- [1. Introduction to Shiny](#introduction-to-shiny)
+  - [1.1. Basic Elements](#basic-elements)
+  - [1.2. Reactive expressions](#reactive-expressions)
+- [2. Basic UI](#basic-ui)
+- [3. Basic reactivity](#basic-reactivity)
+  - [The server function arguments](#the-server-function-arguments)
+  - [Reactive programming](#reactive-programming)
+  - [Reactive graph](#reactive-graph)
+  - [Controlling evaluation](#controlling-evaluation)
+- [4. Basic Layout](#basic-layout)
 
 ## 1. Introduction to Shiny
 
@@ -137,6 +130,8 @@ Every **shiny** runs based on the next objects. - `ui`: Contains the
 HTML presented to every user of your app. - `server`: Shiny invokes your
 `server()` function each time a new session starts, to show an
 independent version of the app for each user.
+
+> Keep computing and plotting separate
 
 ### The server function arguments
 
@@ -271,3 +266,31 @@ server <- function(input, output, session) {
 
 <img src="03_basic_reactivity/img/05-observe-graph.png"
 data-fig-align="center" width="600" />
+
+## 4. Basic Layout
+
+- **fluidPage**: Consists of rows which in turn include 12-unit wide
+  grid columns of horizontal space.
+  - **fluidRow**: Use this function to split rows.
+  - **column**: Use this to defining width of each element based 12-unit
+    wide grid columns.
+
+``` r
+prod_codes <- setNames(products$prod_code, products$title)
+
+ui <- fluidPage(
+  fluidRow(
+    column(6,
+      selectInput("code", "Product", choices = prod_codes)
+    )
+  ),
+  fluidRow(
+    column(4, tableOutput("diag")),
+    column(4, tableOutput("body_part")),
+    column(4, tableOutput("location"))
+  ),
+  fluidRow(
+    column(12, plotOutput("age_sex"))
+  )
+)
+```

@@ -588,23 +588,21 @@ digraph step_1 {
         height = 0.15,
         rank = 2]
   y1[label='injuries_selected()']
-  y2[label='age_sex_summary()']
-  
+
   subgraph {
-  rank = same; y1; y2
+  rank = same; y1
   }
   
   node [rank = 3]
+  y2[label='age_sex_summary()']
   y3[label='narrative_sample()']
   
   subgraph {
-  rank = same; y3
+  rank = same; y3; y2
   }
 
-
   # Defining output
-  node [shape = ellipse,
-        rank = 4]
+  node [shape = ellipse, rank = 4]
   z1[label='diag_tb']
   z2[label='body_part_tb']
   z3[label='location_tb']
@@ -907,31 +905,32 @@ server <- function(input, output, session) {
     }
   }, res = 96)
   
-  
-  narrative_step <- eventReactive(injuries_selected(), 1L)
   max_rows <- reactive(injuries_selected() |> nrow())
   
-  narrative_step <- eventReactive(
-    input$backward,{
-     x <- narrative_step() - 1L
-     x <- if(x < 1) 1L else x
-     return(x)
-    })
+  narrative_step <- reactiveVal(1L)
   
-  narrative_step <- eventReactive(
-    input$forward,{
-      x <- narrative_step() + 1L
-      x <- if(x > max_rows()) max_rows() else x
-      return(x)
-    })
+  observeEvent(
+    list(input$code, injuries_selected()), 
+    narrative_step(1L)
+  )
   
+  observeEvent(input$backward,{
+    x <- narrative_step() - 1L
+    x <- if(x < 1) 1L else x
+    narrative_step(x)
+  })
   
-  narrative_sample <- eventReactive(
-    list(input$backward, input$forward),
+  observeEvent(input$forward,{
+    x <- narrative_step() + 1L
+    x <- if(x > max_rows()) max_rows() else x
+    narrative_step(x)
+  })
+  
+  narrative_sample <- reactive(
     injuries_selected() |> 
       pull(narrative) |>
       (\(x) x[narrative_step()])() |>
-      paste0(narrative_step(),": ", a = _)
+      paste0("Narrative ", narrative_step(), ": ", a = _)
   )
   
   output$narrative <- renderText(narrative_sample())
@@ -940,3 +939,128 @@ server <- function(input, output, session) {
 
 shinyApp(ui, server)
 ```
+
+![](img/07-display-narrative.png)
+
+5. Make the list of narratives “circular” so that advancing forward from the last narrative takes you to the first.
+
+```{r}
+#| eval: false
+
+count_top <- function(df, var, n = 5) {
+  df |>
+    mutate({{ var }} := fct_lump(fct_infreq({{ var }}), n = n)) |>
+    group_by({{ var }}) |>
+    summarise(n = as.integer(sum(weight)))
+}
+
+prod_codes <- setNames(products$prod_code, products$title)
+
+ui <- fluidPage(
+  fluidRow(
+    column(8,
+      selectInput("code", "Product",
+        choices = setNames(products$prod_code, products$title),
+        width = "100%"
+      )
+    ),
+    column(2, selectInput("metric", "Y axis", c("rate", "count"))),
+    column(2, numericInput("n_rows", "Rows to display", 5L))
+  ),
+  fluidRow(
+    column(4, tableOutput("diag_tb")),
+    column(4, tableOutput("body_part_tb")),
+    column(4, tableOutput("location_tb"))
+  ),
+  fluidRow(
+    column(12, plotOutput("age_sex_plot"))
+  ),
+  fluidRow(
+    column(2, actionButton("backward", "Backward")),
+    column(2, actionButton("forward", "Forward")),
+    column(8, textOutput("narrative"))
+  )
+)
+
+server <- function(input, output, session) {
+  
+  injuries_selected <- reactive({
+    injuries |> filter(prod_code == input$code)
+  })
+  
+  output$diag_tb <- renderTable(
+    count_top(injuries_selected(), diag, input$n_rows),
+    width = "100%"
+  )
+  
+  output$body_part_tb <- renderTable(
+    count_top(injuries_selected(), body_part, input$n_rows),
+    width = "100%"
+  )
+  
+  output$location_tb <- renderTable(
+    count_top(injuries_selected(), location, input$n_rows),
+    width = "100%"
+  )
+  
+  # Now if the we change from count to rate
+  # shiny doesn't need to update this part
+  # just to update the plot
+  age_sex_summary <- reactive({
+    injuries_selected() |>
+      count(age, sex, wt = weight, sort = TRUE) |>
+      left_join(population, by = c("age", "sex")) |>
+      mutate(rate = n / population * 1e4)
+  })
+  
+  
+  output$age_sex_plot <- renderPlot({
+    if (input$metric == "count") {
+      age_sex_summary() |>
+        ggplot(aes(age, n, colour = sex)) +
+        geom_line() +
+        labs(y = "Estimated number of injuries")
+    } else {
+      age_sex_summary() |>
+        ggplot(aes(age, rate, colour = sex)) +
+        geom_line(na.rm = TRUE) +
+        labs(y = "Injuries per 10,000 people")
+    }
+  }, res = 96)
+  
+  max_rows <- reactive(injuries_selected() |> nrow())
+  
+  narrative_step <- reactiveVal(1L)
+  
+  observeEvent(
+    list(input$code, injuries_selected()), 
+    narrative_step(1L)
+  )
+  
+  observeEvent(input$backward,{
+    x <- narrative_step() - 1L
+    x <- if(x < 1) max_rows() else x
+    narrative_step(x)
+  })
+  
+  observeEvent(input$forward,{
+    x <- narrative_step() + 1L
+    x <- if(x > max_rows()) 1L else x
+    narrative_step(x)
+  })
+  
+  narrative_sample <- reactive(
+    injuries_selected() |> 
+      pull(narrative) |>
+      (\(x) x[narrative_step()])() |>
+      paste0("Narrative ", narrative_step(), ": ", a = _)
+  )
+  
+  output$narrative <- renderText(narrative_sample())
+    
+}
+
+shinyApp(ui, server)
+```
+
+![](img/08-display-circular-narrative.png)
