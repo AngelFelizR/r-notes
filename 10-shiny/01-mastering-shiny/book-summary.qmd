@@ -227,32 +227,79 @@ server <- function(input, output, session) {
 ![](03_basic_reactivity/img/05-observe-graph.png){width=600 fig-align="center"}
 
 
-## 4. Basic Layout
+## 6. Layout, themes, HTML
 
-- **fluidPage**: Consists of rows which in turn include 12-unit wide grid columns of horizontal space. 
-  - **fluidRow**: Use this function to split rows.
-  - **column**: Use this to defining width of each element based 12-unit wide grid columns.
-  
-```r
-prod_codes <- setNames(products$prod_code, products$title)
+### Layouts
 
-ui <- fluidPage(
-  fluidRow(
-    column(6,
-      selectInput("code", "Product", choices = prod_codes)
-    )
-  ),
-  fluidRow(
-    column(4, tableOutput("diag")),
-    column(4, tableOutput("body_part")),
-    column(4, tableOutput("location"))
-  ),
-  fluidRow(
-    column(12, plotOutput("age_sex"))
-  )
-)
+Based on the next [articule](https://shiny.posit.co/r/articles/build/layout-guide/) we have created the next tree.
+
+```
+Shiny
+|
+|-- navbarPage(navbarPage = TRUE) # 12 columns
+    |-- "Header A1"
+    |-- tabPanel()
+    |-- navbarMenu()
+        |-- "Header A1"
+        |-- tabPanel()  
+|-- fluidPage()
+    |-- titlePanel()
+    |-- navlistPanel()
+        |-- "Header A1" or "-----"
+        |-- tabPanel()
+    |-- sidebarLayout()
+        |-- sidebarPanel()
+        |-- mainPanel()
+            |-- tabsetPanel(id) # in server input$id returns current_title
+                |-- tabPanel(title)
+    |-- fluidRow()
+        |-- column(width, offset)
+          |-- wellPanel()
+            |-- fluidRow()
+              |-- column()
+            |-- tabsetPanel(id) # in server input$id returns current_title
+                |-- tabPanel(title)
+|-- fillPage()
+|-- splitLayout(cellWidths = c("25%", "75%"))
+|-- bootstrapPage()
+|-- fixedPage() # 12 columns and 940 pixels
+    |-- fixedRow()
+        |-- column()
 ```
 
+### Theme
+
+To change our current theme we can apply the next alternatives:
+
+1. Select a “bootswatch” theme using the bootswatch argument to `bslib::bs_theme()` and copying the same theme to the plots with the `thematic::thematic_shiny()` function.
+
+```{r}
+#| eval: false
+
+library(ggplot2)
+
+ui <- fluidPage(
+  theme = bslib::bs_theme(bootswatch = "darkly"),
+  titlePanel("A themed plot"),
+  plotOutput("plot"),
+)
+
+server <- function(input, output, session) {
+  thematic::thematic_shiny()
+  
+  output$plot <- renderPlot({
+    ggplot(mtcars, aes(wt, mpg)) +
+      geom_point() +
+      geom_smooth()
+  }, res = 96)
+}
+
+shinyApp(ui, server)
+```
+
+![](06_basic_layout/img/04-dark-plot-theme.png)
 
 
+2. Use the [shiny.semantic](https://appsilon.github.io/shiny.semantic/) package.
 
+3. Write your un HTML and CSS.
